@@ -284,6 +284,11 @@ a.inl { color: var(--teal); font-weight: 700; }
 .vt { font-family: var(--font-display); font-weight: 700; font-size: 17px; }
 .toast { position: fixed; left: 0; right: 0; margin: 0 auto; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); width: max-content; max-width: calc(100% - 40px); background: var(--ink); color: var(--app); padding: 10px 16px; border-radius: 14px; font-size: 14px; font-weight: 600; z-index: 31; }
 .toast[hidden] { display: none; }
+.transfer { margin-top: 18px; }
+.imp { position: relative; display: inline-grid; place-items: center; cursor: pointer; }
+.imp input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.imp:focus-within { outline: 2px solid var(--teal); }
+#xferMsg:empty { display: none; }
 /* Otras vistas */
 .vhead { padding: 26px 4px 14px; display: grid; gap: 4px; }
 .vhead h2 { font-size: 26px; font-weight: 800; }
@@ -587,6 +592,12 @@ form.ask input:focus { outline: none; border-color: var(--teal); }
     <div class="formrow"><button type="button" class="reset" id="fitCancel">Cancelar</button><button class="btn" type="submit" id="fitSave">Guardar mudada</button></div>
   </form>
   <div id="fitList"></div>
+  <div class="card transfer">
+    <h3>Pasar mis datos</h3>
+    <p class="muted small">Si usás la app en otro lugar (la página de Claude, Safari o el ícono de la pantalla de inicio), cada uno guarda sus propios datos. Con esto pasás mudadas, fotos, checklist y gastos de uno a otro.</p>
+    <div class="formrow"><button type="button" class="btn" id="expData">Guardar respaldo</button><label class="reset imp" for="impData">Cargar respaldo<input type="file" id="impData" accept=".json,application/json"></label></div>
+    <p class="small" id="xferMsg" aria-live="polite"></p>
+  </div>
 </section>
 <div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Foto de la mudada">
   <div class="vbox"><img alt=""><p class="vt"></p><p class="muted small">Tocá Guardar para pasarla a tu teléfono. En iPhone elegí "Guardar imagen" para que quede en Fotos.</p>
@@ -1119,6 +1130,38 @@ function esc(s) { var d = document.createElement("div"); d.textContent = s; retu
     v.querySelector(".vclose").onclick = function () { v.hidden = true; };
     v.querySelector(".vclose").focus();
   }
+
+
+  /* ---- respaldo: exportar / importar ---- */
+  function msg(s) { document.getElementById("xferMsg").textContent = s; }
+  document.getElementById("expData").addEventListener("click", function () {
+    msg("Preparando respaldo…");
+    Promise.all([Store.listFits(), Store.load("checklist"), Store.load("gastos")]).then(function (r) {
+      var all = fits.slice(); (r[0] || []).forEach(function (f) { if (!all.some(function (x) { return x.id === f.id; })) all.push(f); });
+      var data = JSON.stringify({ app: "gira", v: 1, ts: Date.now(), mudadas: all, checklist: r[1], gastos: r[2] });
+      var name = "gira-respaldo.json";
+      return dlP.then(function (dl) {
+        if (dl) return dl.save({ filename: name, data: data });
+        var file = new File([data], name, { type: "application/json" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) return navigator.share({ files: [file] });
+        var a = document.createElement("a"); a.href = URL.createObjectURL(file); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+      }).then(function () { msg("Listo. Guardaste " + all.length + " mudadas. En iPhone guardalo en Archivos, y después abrí la app donde lo querés y tocá Cargar respaldo."); });
+    }).catch(function (e) { msg(e && e.code === "declined" ? "Cancelaste el respaldo." : "No se pudo crear el respaldo."); });
+  });
+  document.getElementById("impData").addEventListener("change", function (e) {
+    var file = e.target.files && e.target.files[0]; if (!file) return;
+    msg("Cargando respaldo…");
+    file.text().then(function (txt) {
+      var d = JSON.parse(txt); if (!d || d.app !== "gira") throw 0;
+      var ms = d.mudadas || [];
+      return Promise.all(ms.map(function (f) { return Store.saveFit(f).catch(function () {}); })).then(function () {
+        if (d.checklist && d.checklist.items) Store.save("checklist", d.checklist);
+        if (d.gastos && d.gastos.items) Store.save("gastos", d.gastos);
+        msg("Se cargaron " + ms.length + " mudadas, tu checklist y tus gastos. Recargando…");
+        setTimeout(function () { location.reload(); }, 1500);
+      });
+    }).catch(function () { msg("Ese archivo no es un respaldo de la gira."); }).then(function () { e.target.value = ""; });
+  });
 
   function render() {
     listEl.innerHTML = "";

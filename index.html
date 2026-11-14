@@ -774,6 +774,7 @@ var Store = (function () {
   var refs = {}, busy = {}, pending = {}, mode = "local", readyP;
   function lsGet(k) { try { return JSON.parse(localStorage.getItem("gira-" + k) || "null"); } catch (e) { return null; } }
   function lsSet(k, v) { try { localStorage.setItem("gira-" + k, JSON.stringify(v)); } catch (e) {} }
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
   readyP = new Promise(function (resolve) {
     var done = false, timer = setTimeout(function () { if (!done) { done = true; resolve(); } }, 10000);
     if (!(window.claude && window.claude.use)) { done = true; clearTimeout(timer); resolve(); return; }
@@ -791,17 +792,22 @@ var Store = (function () {
   function load(k) {
     return readyP.then(function () {
       if (mode !== "cloud") return lsGet(k);
-      return refs[k].get().then(function (s) { var v = s.exists ? JSON.parse(JSON.stringify(s.data())) : null; return v || lsGet(k); })
-        .catch(function () { mode = "local"; return lsGet(k); });
+      var loc = lsGet(k);
+      return refs[k].get().then(function (s) {
+        var v = s.exists ? JSON.parse(JSON.stringify(s.data())) : null;
+        if (!v) { if (loc) save(k, loc); return loc; }
+        if (loc && (loc.updatedAt || 0) > (v.updatedAt || 0)) { save(k, loc); return loc; }
+        return v;
+      }).catch(function () { return loc; });
     });
   }
   function flush(k) {
     if (busy[k] || !pending[k]) return;
     var v = pending[k]; pending[k] = null; busy[k] = true;
-    refs[k].set(v).catch(function (e) { if (e && (e.code === "invalid_argument" || e.code === "revoked" || e.code === "not_granted")) mode = "local"; })
+    refs[k].set(v).catch(function (e) { if (e && (e.code === "revoked" || e.code === "not_granted")) mode = "local"; else setTimeout(function () { if (!pending[k]) { pending[k] = v; flush(k); } }, 4000); })
       .then(function () { busy[k] = false; flush(k); });
   }
-  function save(k, v) { lsSet(k, v); if (mode === "cloud") { pending[k] = v; flush(k); } }
+  function save(k, v) { v.updatedAt = Date.now(); lsSet(k, v); if (mode === "cloud") { pending[k] = v; flush(k); } }
   var idbP = null;
   function idb() {
     if (idbP) return idbP;
@@ -861,7 +867,8 @@ function esc(s) { var d = document.createElement("div"); d.textContent = s; retu
   window.giraChecklist = function () { return state; };
   function fromTemplate() { var items = []; Object.keys(TEMPLATE).forEach(function (g) { TEMPLATE[g].forEach(function (t) { items.push({ id: uid(), g: g, t: t, d: false }); }); }); return { items: items }; }
   var state = fromTemplate(), pack = document.getElementById("pack"), editing = false;
-  function save() { Store.save("checklist", state); }
+  var touched = false;
+  function save() { touched = true; Store.save("checklist", state); }
   function render() {
     var groups = [];
     state.items.forEach(function (it) { if (groups.indexOf(it.g) < 0) groups.push(it.g); });
@@ -896,7 +903,7 @@ function esc(s) { var d = document.createElement("div"); d.textContent = s; retu
   document.getElementById("editList").addEventListener("click", function (e) { editing = !editing; e.currentTarget.textContent = editing ? "Listo" : "Editar lista"; e.currentTarget.setAttribute("aria-pressed", editing); pack.classList.toggle("editing", editing); });
   document.getElementById("newGroup").addEventListener("submit", function (e) { e.preventDefault(); var i = e.target.querySelector("input"), v = i.value.trim(); if (!v) return; state.items.push({ id: uid(), g: v, t: "Nuevo item", d: false }); i.value = ""; render(); save(); });
   render();
-  Store.load("checklist").then(function (v) { if (v && v.items) { state = v; render(); } });
+  Store.load("checklist").then(function (v) { if (touched) { Store.save("checklist", state); return; } if (v && v.items) { state = v; render(); } });
   Store.ready.then(function () { document.getElementById("saveNote").textContent = Store.mode() === "cloud" ? "Se guarda en tu cuenta y lo ves en cualquier dispositivo." : "Se guarda solo en este navegador."; });
 })();
 
@@ -918,7 +925,8 @@ function esc(s) { var d = document.createElement("div"); d.textContent = s; retu
   };
   function conv(a, from, to) { return a / rate(from) * rate(to); }
   function money(a, c) { return SYM[c] + " " + (Math.round(a * 100) / 100).toLocaleString("es-HN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-  function save() { Store.save("gastos", state); }
+  var gTouched = false;
+  function save() { gTouched = true; Store.save("gastos", state); }
   var entryCur = "HNL";
   function seg(el, val, cb) { el.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.v === val); b.onclick = function () { cb(b.dataset.v); }; }); }
   function dayLabel(ts) {
@@ -984,7 +992,7 @@ function esc(s) { var d = document.createElement("div"); d.textContent = s; retu
   document.getElementById("gBudget").addEventListener("change", function (e) { var v = parseFloat(e.target.value); state.budget = v > 0 ? v : 0; render(); save(); });
   function fill() { document.getElementById("rHNL").value = state.rates.HNL; document.getElementById("rGTQ").value = state.rates.GTQ; document.getElementById("gBudget").value = state.budget ? Math.round(state.budget * 100) / 100 : ""; }
   fill(); render();
-  Store.load("gastos").then(function (v) { if (v && v.items) { state = v; state.rates = state.rates || { HNL: 27.04, GTQ: 7.7 }; fill(); render(); } });
+  Store.load("gastos").then(function (v) { if (gTouched) { Store.save("gastos", state); return; } if (v && v.items) { state = v; state.rates = state.rates || { HNL: 27.04, GTQ: 7.7 }; fill(); render(); } });
 })();
 
 /* ---------- Ropa: mudadas por día ---------- */

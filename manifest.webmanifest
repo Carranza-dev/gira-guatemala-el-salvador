@@ -1,6 +1,6 @@
 {
-  "name": "Gira Guatemala y El Salvador",
-  "short_name": "Gira",
+  "name": "Giras",
+  "short_name": "Giras",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

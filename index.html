@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2a8a8c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Gira">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<title>Gira Guatemala y El Salvador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Urbanist:wght@500;600;700;800&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Plan: app tipo "Habit Hero". Un solo camino serpenteante teal recorre todo el viaje; cada parada vive dentro de una vuelta, sin tarjetas.
+   Encabezado flotante esmerilado arriba, barra oscura flotante abajo con botón central naranja. */
+:root {
+  --page: #dedcd8; --app: #f6f4ef; --surface: #ffffff; --ink: #1e2326; --muted: #8a8f93; --line: #e6e2da;
+  --teal: #2a8a8c; --teal-soft: #d5ecea; --orange: #f2762e; --orange-soft: #fde6d5;
+  --cold: #4f74d4; --cold-soft: #e3e9fb; --dock: #1d1f21;
+  --font-display: "Urbanist", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Figtree", "Segoe UI", system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #0e1112; --app: #161a1c; --surface: #20262a; --ink: #eef1f1; --muted: #8f999d; --line: #2a3236;
+    --teal: #4cb6b3; --teal-soft: #173634; --orange: #f68a45; --orange-soft: #3a2415; --cold: #8ca6f0; --cold-soft: #1d2645; --dock: #0b0d0e;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #0e1112; --app: #161a1c; --surface: #20262a; --ink: #eef1f1; --muted: #8f999d; --line: #2a3236;
+  --teal: #4cb6b3; --teal-soft: #173634; --orange: #f68a45; --orange-soft: #3a2415; --cold: #8ca6f0; --cold-soft: #1d2645; --dock: #0b0d0e;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; overflow-x: clip; }
+html { -webkit-text-size-adjust: 100%; }
+html { scroll-behavior: smooth; }
+body { background: radial-gradient(120% 80% at 50% 0%, var(--app), var(--page)); color: var(--ink); font-family: var(--font-body); font-size: 16px; line-height: 1.45; min-height: 100%; }
+.app { max-width: 440px; margin: 0 auto; background: var(--app); min-height: 100vh; padding: 12px 0 120px; position: relative; }
+@media (min-width: 560px) { body { padding: 28px 0; } .app { border-radius: 40px; box-shadow: 0 30px 80px rgba(30,25,15,.18); min-height: auto; overflow: clip; } }
+h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+p { margin: 0; }
+button { font: inherit; color: inherit; }
+.view { padding: 0 18px; }
+.view[hidden] { display: none !important; }
+
+/* Encabezado flotante */
+.top { position: sticky; top: 10px; z-index: 6; margin: 0 12px; }
+.glass { background: color-mix(in srgb, var(--surface) 78%, transparent); backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px); border-radius: 28px; box-shadow: 0 10px 30px rgba(30,25,15,.10); padding: 12px 14px 14px; display: grid; gap: 10px; }
+.glass-row { display: grid; grid-template-columns: 1fr; align-items: center; }
+.roundbtn { width: 40px; height: 40px; border-radius: 50%; border: 1px solid var(--line); background: var(--surface); display: grid; place-items: center; text-decoration: none; color: var(--orange); }
+.roundbtn svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.roundbtn:focus-visible { outline: 2px solid var(--teal); }
+.me { justify-self: center; display: grid; justify-items: center; gap: 4px; }
+.ring { width: 58px; height: 58px; border-radius: 50%; display: grid; place-items: center; background: conic-gradient(var(--orange) calc(var(--p, 0) * 1%), var(--line) 0); }
+.ring span { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(140deg, var(--teal), #1f6e70); color: #fff; display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 18px; letter-spacing: .02em; }
+.me h1 { font-size: 19px; font-weight: 800; }
+.hsub { font-size: 13px; color: var(--muted); margin-top: -4px; }
+.stats { display: flex; justify-content: center; align-items: center; gap: 18px; font-size: 13px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.stats span { display: inline-flex; align-items: center; gap: 5px; }
+.stats svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; }
+.lvl { border: 1.5px solid var(--orange); color: var(--ink); border-radius: 999px; padding: 2px 10px; }
+.nowpill { position: relative; z-index: 2; margin: -14px auto 0; display: flex; width: max-content; max-width: 88%; align-items: center; gap: 8px; background: linear-gradient(90deg, #2f9a97, #6fb9a9); color: #fff; text-decoration: none; padding: 7px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; box-shadow: 0 8px 20px rgba(42,138,140,.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nowpill i { width: 8px; height: 8px; border-radius: 50%; background: #fff; flex: none; box-shadow: 0 0 0 3px rgba(255,255,255,.35); }
+.nowpill span { overflow: hidden; text-overflow: ellipsis; }
+
+
+svg.flag { width: 21px; height: 14px; border-radius: 3px; box-shadow: 0 0 0 1px rgba(0,0,0,.08); flex: none; fill: initial; stroke: none; }
+.where { display: inline-flex; align-items: center; gap: 6px; color: var(--ink); }
+.stats .where svg.flag { width: 21px; height: 14px; fill: initial; stroke: none; stroke-width: 0; }
+.daylabel .flags { display: inline-flex; gap: 4px; margin-left: 4px; align-items: center; }
+.daylabel .flags svg.flag { width: 18px; height: 12px; fill: initial; stroke: none; }
+.daylabel .flags i { font-style: normal; color: var(--muted); font-size: 11px; }
+
+.av .flagbadge { position: absolute; left: -6px; bottom: -4px; display: flex; z-index: 1; }
+.av .flagbadge svg.flag { width: 34px; height: 23px; border-radius: 5px; box-shadow: 0 0 0 2.5px var(--app), 0 3px 8px rgba(30,25,15,.18); }
+.av .flagbadge svg.flag + svg.flag { margin-left: -12px; margin-top: 8px; }
+.row.r .av .flagbadge { left: auto; right: -6px; }
+
+.dayrow { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+.dayrow a { justify-self: center; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; align-content: center; text-decoration: none; color: var(--ink); background: var(--surface); border: 1.5px solid var(--line); line-height: 1; gap: 2px; }
+.dayrow a b { font-size: 10px; font-weight: 700; color: var(--muted); }
+.dayrow a span { font-family: var(--font-display); font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.dayrow a.past { background: var(--teal-soft); border-color: var(--teal-soft); }
+.dayrow a.past b, .dayrow a.past span { color: var(--teal); }
+.dayrow a.today { background: var(--orange); border-color: var(--orange); box-shadow: 0 4px 12px rgba(242,118,46,.35); }
+.dayrow a.today b, .dayrow a.today span { color: #fff; }
+.dayrow a.sel:not(.today) { border-color: var(--ink); }
+.dayrow a:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+@media (max-width: 360px) { .dayrow a { width: 38px; height: 38px; } }
+/* Camino */
+.trail { position: relative; margin-top: 14px; }
+.trail svg.snake { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.snake .solid { fill: none; stroke: var(--teal); stroke-width: 2.5; stroke-linecap: round; }
+.snake .dash { fill: none; stroke: var(--teal); stroke-width: 2.5; stroke-dasharray: 1.5 7; stroke-linecap: round; opacity: .8; }
+.snake .walker { fill: var(--orange); stroke: var(--app); stroke-width: 4; }
+.snake .halo { fill: var(--orange); opacity: .25; }
+@media (prefers-reduced-motion: no-preference) { .snake .halo { animation: pulse 1.8s ease-out infinite; transform-box: fill-box; transform-origin: center; } }
+@keyframes pulse { from { transform: scale(.5); opacity: .5; } to { transform: scale(1.7); opacity: 0; } }
+ol.rows { list-style: none; margin: 0; padding: 0; position: relative; }
+.row { position: relative; padding: 30px 30px 30px 30px; }
+.row.first { padding-top: 64px; }
+.daylabel { position: absolute; top: 0; left: 50%; transform: translate(-50%, -50%); background: var(--app); padding: 2px 12px; display: inline-flex; align-items: center; gap: 6px; color: var(--teal); font-family: var(--font-display); font-weight: 800; font-size: 15px; white-space: nowrap; z-index: 1; }
+.daylabel svg { width: 11px; height: 11px; fill: none; stroke: var(--teal); stroke-width: 1.6; }
+.dayroute { position: absolute; top: 18px; left: 0; right: 0; text-align: center; font-size: 13px; color: var(--muted); font-weight: 500; }
+.row-in { display: grid; grid-template-columns: 72px 1fr; gap: 16px; align-items: center; }
+.row.r .row-in { grid-template-columns: 1fr 72px; }
+.row.r .av { order: 2; }
+.av { position: relative; width: 72px; height: 72px; }
+.av .blob { position: absolute; inset: 0; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--surface) 0 30%, var(--teal-soft) 75%); box-shadow: 0 6px 16px rgba(30,25,15,.08); }
+.av.warm .blob { background: radial-gradient(circle at 35% 30%, var(--surface) 0 30%, var(--orange-soft) 75%); }
+.av.cool .blob { background: radial-gradient(circle at 35% 30%, var(--surface) 0 30%, var(--cold-soft) 75%); }
+.av > svg { position: absolute; inset: 16px; width: 40px; height: 40px; }
+.av .tick { position: absolute; top: -2px; right: -2px; width: 22px; height: 22px; border-radius: 50%; background: var(--app); display: none; place-items: center; }
+.av .tick svg { width: 16px; height: 16px; fill: none; stroke: var(--teal); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.row.past .av .tick { display: grid; }
+.txt { display: grid; gap: 3px; min-width: 0; }
+.txt b { font-family: var(--font-display); font-weight: 700; font-size: 19px; line-height: 1.15; letter-spacing: -.01em; }
+.meta { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; align-items: center; }
+.temp { font-family: var(--font-display); font-weight: 800; font-size: 13px; padding: 4px 10px; border-radius: 9px; font-variant-numeric: tabular-nums; }
+.temp.hot { background: var(--orange); color: #fff; box-shadow: 0 4px 10px rgba(242,118,46,.3); }
+.temp.mild { background: var(--teal-soft); color: var(--teal); }
+.temp.cold { background: var(--cold-soft); color: var(--cold); }
+.more { display: inline-flex; align-items: center; gap: 5px; border: 0; cursor: pointer; background: var(--orange); color: #fff; font-family: var(--font-display); font-weight: 700; font-size: 13px; padding: 4px 10px; border-radius: 9px; box-shadow: 0 4px 10px rgba(242,118,46,.3); }
+.more svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; transition: transform .2s; }
+.more[aria-expanded="true"] svg { transform: rotate(90deg); }
+.more:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.state { display: none; font-size: 12px; font-weight: 700; padding: 4px 9px; border-radius: 9px; }
+.row.now .state { display: inline-block; background: var(--ink); color: var(--app); }
+.row.now .state::before { content: "Estás aquí"; }
+.row.next .state { display: inline-block; background: var(--surface); color: var(--teal); border: 1px solid var(--teal-soft); }
+.row.next .state::before { content: "Siguiente"; }
+.row.past .state { display: inline-block; background: var(--teal-soft); color: var(--teal); }
+.row.past .state::before { content: "Hecho"; }
+.row.past .txt b { color: color-mix(in srgb, var(--ink) 55%, transparent); }
+.detail { margin-top: 14px; display: grid; gap: 10px; background: var(--surface); border-radius: 20px; padding: 14px 16px; box-shadow: 0 6px 18px rgba(30,25,15,.06); font-size: 15px; }
+.detail[hidden] { display: none; }
+.detail .wear { background: var(--app); border-radius: 14px; padding: 10px 12px; }
+.detail .wear b { display: block; color: var(--teal); font-size: 13px; font-family: var(--font-display); }
+.detail a { justify-self: start; color: var(--orange); font-weight: 700; font-size: 14px; text-decoration: none; }
+.detail a:focus-visible, .detail a:hover { text-decoration: underline; }
+
+/* Barra inferior */
+.dock { position: fixed; left: 0; right: 0; margin: 0 auto; bottom: calc(14px + env(safe-area-inset-bottom, 0px)); width: calc(100% - 24px); max-width: 400px; height: 66px; background: var(--dock); border-radius: 26px; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center; z-index: 10; box-shadow: 0 14px 34px rgba(0,0,0,.28); }
+.dock a { display: grid; justify-items: center; gap: 2px; color: #8d9296; text-decoration: none; font-size: 10px; font-weight: 600; }
+.dock a svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.dock a[aria-current="page"] { color: #fff; }
+.dock a:focus-visible { outline: 2px solid var(--orange); outline-offset: 4px; border-radius: 10px; }
+.dock .center { width: 52px; height: 52px; border-radius: 50%; background: var(--orange); color: #fff; place-items: center; justify-self: center; box-shadow: 0 0 0 5px rgba(242,118,46,.2); }
+.dock .center svg { width: 24px; height: 24px; stroke-width: 2.2; }
+
+
+.toolbar { display: flex; gap: 8px; flex-wrap: wrap; }
+.pillbtn { border: 0; background: var(--teal); color: #fff; font-weight: 700; font-size: 13px; padding: 6px 14px; border-radius: 999px; cursor: pointer; }
+.pillbtn[aria-pressed="true"] { background: var(--orange); }
+#pack { display: grid; gap: 14px; }
+.check { display: flex; align-items: center; gap: 6px; padding: 0 6px 0 0; border-radius: 16px; background: var(--app); }
+.check label { flex: 1; display: flex; align-items: center; gap: 12px; padding: 10px 12px; cursor: pointer; position: relative; min-width: 0; }
+.del { display: none; flex: none; width: 30px; height: 30px; border-radius: 50%; border: 0; background: var(--orange-soft); color: var(--orange); cursor: pointer; place-items: center; }
+.del svg { width: 12px; height: 12px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+.editing .del, .del.show { display: grid; }
+.del:focus-visible { outline: 2px solid var(--orange); }
+.addrow { display: none; gap: 8px; }
+.editing .addrow, .grouprow { display: flex; }
+#pack:not(.editing) ~ .grouprow { display: none; }
+.addrow input, .field { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 10px 14px; border-radius: 14px; border: 1.5px dashed var(--line); background: var(--surface); color: var(--ink); }
+.field { border-style: solid; background: var(--app); }
+.addrow input:focus, .field:focus { outline: none; border-color: var(--teal); }
+.addrow button { width: 42px; border: 0; border-radius: 14px; background: var(--teal); color: #fff; cursor: pointer; display: grid; place-items: center; }
+.addrow button svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; }
+/* Gastos */
+.seg { display: inline-flex; background: var(--app); border-radius: 999px; padding: 4px; gap: 2px; justify-self: start; }
+.seg button { border: 0; background: none; font-weight: 700; font-size: 14px; padding: 6px 14px; border-radius: 999px; cursor: pointer; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--app); }
+.seg button:focus-visible { outline: 2px solid var(--teal); }
+.total { text-align: left; gap: 4px; }
+.total .seg { margin-bottom: 8px; }
+.big { font-family: var(--font-display); font-size: 40px; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; line-height: 1.05; }
+.small { font-size: 13px; }
+#gBudgetWrap { display: grid; gap: 6px; margin-top: 8px; }
+#gBudgetWrap[hidden] { display: none; }
+#gBudgetFill.over { background: var(--orange); }
+.cats { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.catchip { display: inline-flex; gap: 6px; background: var(--teal-soft); color: var(--teal); border-radius: 10px; padding: 4px 10px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.amt { display: flex; align-items: center; gap: 8px; border-bottom: 2px solid var(--line); padding-bottom: 6px; }
+.amt:focus-within { border-color: var(--teal); }
+.amt span { font-family: var(--font-display); font-size: 30px; font-weight: 800; color: var(--muted); }
+.amt input { flex: 1; min-width: 0; width: 100%; border: 0; background: none; font-family: var(--font-display); font-size: 34px; font-weight: 800; color: var(--ink); outline: none; font-variant-numeric: tabular-nums; }
+.formrow { display: flex; gap: 8px; }
+.formrow .btn { padding: 0 22px; }
+select.field { appearance: none; background-image: linear-gradient(45deg, transparent 50%, var(--muted) 50%), linear-gradient(135deg, var(--muted) 50%, transparent 50%); background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%; background-size: 5px 5px; background-repeat: no-repeat; }
+#gList { display: grid; gap: 4px; }
+.gday { font-size: 15px; margin: 8px 0 2px; color: var(--teal); }
+.gday:first-child { margin-top: 0; }
+.gitem { display: grid; grid-template-columns: 36px 1fr auto 30px; gap: 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+.gday + .gitem { border-top: 0; }
+.gcat { width: 36px; height: 36px; border-radius: 50%; background: var(--orange-soft); color: var(--orange); display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; }
+.gtxt, .gamt { display: grid; min-width: 0; }
+.gtxt b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gtxt small, .gamt small { color: var(--muted); font-size: 12px; }
+.gamt { text-align: right; font-variant-numeric: tabular-nums; }
+.gamt b { font-family: var(--font-display); font-weight: 800; }
+.empty { color: var(--muted); text-align: center; padding: 10px 0; }
+details.rates summary { font-family: var(--font-display); font-weight: 700; cursor: pointer; }
+.raterow { display: flex; justify-content: space-between; align-items: center; gap: 10px; font-size: 15px; }
+.raterow input { width: 110px; font: inherit; padding: 8px 10px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--app); color: var(--ink); text-align: right; }
+a.inl { color: var(--teal); font-weight: 700; }
+
+
+
+.stepper { display: grid; gap: 4px; flex: none; }
+.stepper button { width: 44px; height: 30px; border: 0; border-radius: 10px; background: var(--orange); color: #fff; cursor: pointer; display: grid; place-items: center; touch-action: manipulation; -webkit-user-select: none; user-select: none; }
+.stepper button:last-child { background: var(--orange-soft); color: var(--orange); }
+.stepper button svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.8; stroke-linecap: round; stroke-linejoin: round; }
+.stepper button:active { transform: scale(.94); }
+.stepper button:focus-visible { outline: 2px solid var(--teal); }
+/* Ropa */
+.newfit { width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; border: 0; background: var(--teal); color: #fff; font-family: var(--font-display); font-weight: 700; font-size: 16px; padding: 14px; border-radius: 20px; cursor: pointer; margin-bottom: 14px; box-shadow: 0 8px 20px rgba(42,138,140,.25); }
+.newfit svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; }
+.newfit[hidden], .editor[hidden] { display: none; }
+.shots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.shot { position: relative; aspect-ratio: 3 / 4; border-radius: 18px; background: var(--app); border: 2px dashed var(--line); display: grid; place-items: center; cursor: pointer; overflow: hidden; }
+.shot input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.shot:focus-within { border-color: var(--teal); }
+.shot .ph { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--teal-soft); color: var(--teal); margin-bottom: 18px; }
+.shot .ph svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linejoin: round; stroke-linecap: round; }
+.shot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: none; }
+.shot.has img { display: block; }
+.shot.has { border-style: solid; border-color: transparent; }
+.shot b { position: absolute; left: 6px; right: 6px; bottom: 6px; text-align: center; font-size: 12px; font-weight: 700; background: color-mix(in srgb, var(--surface) 88%, transparent); border-radius: 8px; padding: 3px 0; }
+.shot.busy::after { content: "Cargando…"; position: absolute; inset: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--surface) 70%, transparent); font-size: 13px; font-weight: 700; }
+.fld { display: grid; gap: 8px; }
+.lbl { font-family: var(--font-display); font-weight: 700; font-size: 15px; }
+.daychips, .purpose { display: flex; flex-wrap: wrap; gap: 6px; }
+.daychips button, .purpose button { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); font-weight: 600; font-size: 13px; padding: 6px 11px; border-radius: 12px; cursor: pointer; display: grid; justify-items: center; line-height: 1.15; }
+.daychips button small { font-size: 11px; color: var(--muted); font-weight: 600; }
+.daychips button[aria-pressed="true"], .purpose button[aria-pressed="true"] { background: var(--ink); color: var(--app); border-color: var(--ink); }
+.daychips button[aria-pressed="true"] small { color: var(--app); opacity: .8; }
+.daychips button:disabled { opacity: .4; cursor: not-allowed; }
+.daychips button:focus-visible, .purpose button:focus-visible { outline: 2px solid var(--teal); }
+.err { color: var(--orange); }
+.err:empty { display: none; }
+.fday { margin: 18px 4px 8px; display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+.fday h3 { font-size: 19px; }
+.fday span { font-size: 13px; color: var(--muted); font-weight: 600; }
+.fitcard { background: var(--surface); border-radius: 24px; padding: 14px; box-shadow: 0 6px 18px rgba(30,25,15,.06); display: grid; gap: 10px; margin-bottom: 10px; }
+.fithead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.fithead b { font-family: var(--font-display); font-size: 17px; }
+.fithead small { color: var(--muted); font-size: 12px; display: block; }
+.fitimgs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.fitimgs figure { margin: 0; position: relative; aspect-ratio: 3 / 4; border-radius: 14px; overflow: hidden; background: var(--app); display: grid; place-items: center; }
+.fitimgs img { width: 100%; height: 100%; object-fit: cover; }
+.fitimgs figcaption { position: absolute; left: 4px; right: 4px; bottom: 4px; text-align: center; font-size: 11px; font-weight: 700; background: color-mix(in srgb, var(--surface) 88%, transparent); border-radius: 7px; padding: 2px 0; }
+.fitimgs .none { font-size: 12px; color: var(--muted); }
+.fitact { display: flex; gap: 6px; }
+.fitact button { border: 0; font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 10px; cursor: pointer; background: var(--app); color: var(--ink); }
+.fitact button.danger { background: var(--orange-soft); color: var(--orange); }
+.fitact button.confirm { background: var(--orange); color: #fff; }
+.emptyday { display: flex; justify-content: space-between; align-items: center; gap: 8px; background: var(--surface); border-radius: 18px; padding: 12px 14px; color: var(--muted); font-size: 14px; margin-bottom: 10px; }
+.emptyday button { border: 0; background: var(--teal-soft); color: var(--teal); font-weight: 700; font-size: 13px; padding: 6px 12px; border-radius: 10px; cursor: pointer; }
+.shots { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.shots .shot { aspect-ratio: 1 / 1; }
+.shot .opt { font-weight: 500; color: var(--muted); font-size: 11px; }
+.fitimgs { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.fitimgs.three, .fitimgs.many { grid-template-columns: repeat(3, 1fr); }
+.shot b { font-size: 11px; }
+.shot .opt { display: block; font-size: 10px; }
+.fitact .dl { padding: 6px 9px; display: grid; place-items: center; }
+.fitact .dl svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.fitimgs figure[role="button"] { cursor: zoom-in; }
+.fitimgs figure:focus-visible { outline: 3px solid var(--teal); }
+.viewer { position: fixed; inset: 0; z-index: 30; background: rgba(15,18,20,.72); display: grid; place-items: center; padding: 18px; }
+.viewer[hidden] { display: none; }
+.vbox { background: var(--surface); border-radius: 26px; padding: 14px; width: min(420px, 100%); display: grid; gap: 10px; }
+.vbox img { width: 100%; max-height: 60vh; object-fit: contain; border-radius: 16px; background: var(--app); }
+.vt { font-family: var(--font-display); font-weight: 700; font-size: 17px; }
+.toast { position: fixed; left: 0; right: 0; margin: 0 auto; bottom: calc(92px + env(safe-area-inset-bottom, 0px)); width: max-content; max-width: calc(100% - 40px); background: var(--ink); color: var(--app); padding: 10px 16px; border-radius: 14px; font-size: 14px; font-weight: 600; z-index: 31; }
+.toast[hidden] { display: none; }
+/* Otras vistas */
+.vhead { padding: 26px 4px 14px; display: grid; gap: 4px; }
+.vhead h2 { font-size: 26px; font-weight: 800; }
+.vhead p { color: var(--muted); font-size: 15px; }
+.card { grid-template-columns: minmax(0, 1fr); background: var(--surface); border-radius: 26px; padding: 18px; box-shadow: 0 6px 20px rgba(30,25,15,.06); display: grid; gap: 12px; margin-bottom: 14px; }
+.muted { color: var(--muted); }
+.progress { display: flex; align-items: center; gap: 10px; }
+.bar { flex: 1; height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; }
+.bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--teal), var(--orange)); transition: width .25s; }
+.count { font-family: var(--font-display); font-weight: 800; font-variant-numeric: tabular-nums; }
+button.reset { font-size: 13px; font-weight: 600; background: none; border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 5px 12px; cursor: pointer; }
+.group { display: grid; gap: 6px; }
+.group h3 { font-size: 17px; margin-top: 6px; }
+.check input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.check .box { width: 24px; height: 24px; border-radius: 50%; border: 2px solid var(--teal); flex: none; display: grid; place-items: center; }
+.check .box svg { width: 13px; height: 13px; stroke: #fff; fill: none; stroke-width: 3; opacity: 0; }
+.check input:checked ~ .box { background: var(--teal); }
+.check input:checked ~ .box svg { opacity: 1; }
+.check input:checked ~ .txt { color: var(--muted); text-decoration: line-through; }
+.check .txt { display: block; font-size: 15px; }
+.check input:focus-visible ~ .box { outline: 3px solid var(--teal-soft); outline-offset: 2px; }
+.done-chip { font-size: 12px; font-weight: 700; background: var(--teal-soft); color: var(--teal); padding: 2px 8px; border-radius: 7px; margin-left: auto; display: none; }
+.check input:checked ~ .done-chip { display: inline; }
+.chat-log { display: grid; gap: 10px; max-height: 52vh; overflow-y: auto; }
+.msg { max-width: 88%; padding: 10px 14px; border-radius: 20px; font-size: 15px; white-space: pre-wrap; }
+.msg.me { justify-self: end; background: var(--teal); color: #fff; border-bottom-right-radius: 6px; }
+.msg.bot { justify-self: start; background: var(--app); border-bottom-left-radius: 6px; }
+.msg.err { background: var(--orange-soft); }
+.suggest { display: flex; flex-wrap: wrap; gap: 8px; }
+.suggest button { font-size: 13px; font-weight: 600; background: var(--teal-soft); color: var(--teal); border: 0; border-radius: 999px; padding: 6px 12px; cursor: pointer; }
+form.ask { display: flex; gap: 8px; }
+form.ask input { flex: 1; min-width: 0; font: inherit; font-size: 15px; padding: 12px 16px; border-radius: 999px; border: 1.5px solid var(--line); background: var(--app); color: var(--ink); }
+form.ask input:focus { outline: none; border-color: var(--teal); }
+.btn { font-family: var(--font-display); font-weight: 700; font-size: 15px; background: var(--orange); color: #fff; border: 0; border-radius: 999px; padding: 0 18px; cursor: pointer; }
+.btn:disabled { opacity: .5; }
+.info { gap: 0; }
+.info .irow { display: grid; grid-template-columns: 96px 1fr; gap: 10px; font-size: 15px; padding: 10px 0; border-top: 1px solid var(--line); }
+.info .irow:first-child { border-top: 0; }
+.info .irow span:first-child { font-weight: 700; color: var(--muted); font-size: 14px; }
+.tips { gap: 10px; }
+.tip { display: grid; gap: 4px; padding: 12px 14px; border-radius: 18px; background: var(--app); }
+.tip b { font-family: var(--font-display); font-size: 16px; }
+.tip p { font-size: 15px; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px; }
+.note { font-size: 13px; color: var(--muted); text-align: center; padding: 16px 20px 0; }
+@media (max-width: 380px) { .row { padding-left: 24px; padding-right: 24px; } .row-in, .row.r .row-in { grid-template-columns: 60px 1fr; } .row.r .row-in { grid-template-columns: 1fr 60px; } .av { width: 60px; height: 60px; } .av > svg { inset: 13px; width: 34px; height: 34px; } .info .irow { grid-template-columns: 1fr; gap: 2px; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } html { scroll-behavior: auto; } }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="i-bus" viewBox="0 0 32 32"><rect x="6" y="5" width="20" height="19" rx="4" fill="#2b8c8a"/><rect x="9" y="8" width="14" height="7" rx="1.5" fill="#d6ebe8"/><circle cx="11" cy="20" r="1.6" fill="#fde4d2"/><circle cx="21" cy="20" r="1.6" fill="#fde4d2"/><rect x="8" y="24" width="4" height="3" rx="1" fill="#1c2427"/><rect x="20" y="24" width="4" height="3" rx="1" fill="#1c2427"/></symbol>
+<symbol id="i-border" viewBox="0 0 32 32"><rect x="5" y="9" width="3" height="18" fill="#1c2427"/><rect x="8" y="12" width="20" height="3" rx="1.5" fill="#f0782a"/><rect x="12" y="12" width="4" height="3" fill="#fff"/><rect x="20" y="12" width="4" height="3" fill="#fff"/><path d="M8 5h9v6H8z" fill="#2b8c8a"/></symbol>
+<symbol id="i-city" viewBox="0 0 32 32"><rect x="5" y="14" width="7" height="13" fill="#2b8c8a"/><rect x="13" y="7" width="7" height="20" fill="#1c2427"/><rect x="21" y="11" width="6" height="16" fill="#f0782a"/><rect x="15" y="10" width="3" height="2" fill="#d6ebe8"/><rect x="15" y="15" width="3" height="2" fill="#d6ebe8"/><rect x="15" y="20" width="3" height="2" fill="#d6ebe8"/></symbol>
+<symbol id="i-rocks" viewBox="0 0 32 32"><path d="M4 27 9 9l6 4 1 14z" fill="#6b5a4a"/><path d="M17 27l1-16 5-5 5 21z" fill="#8a7461"/><circle cx="25" cy="7" r="2.5" fill="#f0782a"/><path d="M2 27h28" stroke="#2b8c8a" stroke-width="2"/></symbol>
+<symbol id="i-church" viewBox="0 0 32 32"><path d="M16 4l7 7v16H9V11z" fill="#f0782a"/><rect x="14" y="2" width="4" height="1.5" fill="#1c2427"/><rect x="15.25" y="0.5" width="1.5" height="5" fill="#1c2427"/><path d="M13 27v-6a3 3 0 0 1 6 0v6z" fill="#1c2427"/><circle cx="16" cy="13" r="2.2" fill="#fde4d2"/><rect x="4" y="15" width="5" height="12" fill="#2b8c8a"/><rect x="23" y="15" width="5" height="12" fill="#2b8c8a"/></symbol>
+<symbol id="i-hotel" viewBox="0 0 32 32"><rect x="4" y="15" width="24" height="7" rx="2" fill="#4a6fd0"/><rect x="4" y="11" width="9" height="5" rx="2" fill="#e1e8fa"/><rect x="4" y="8" width="3" height="18" rx="1" fill="#1c2427"/><rect x="25" y="17" width="3" height="9" rx="1" fill="#1c2427"/></symbol>
+<symbol id="i-moon" viewBox="0 0 32 32"><path d="M21 5a11 11 0 1 0 6 18A10 10 0 0 1 21 5z" fill="#4a6fd0"/><circle cx="24" cy="9" r="1.2" fill="#f0782a"/><circle cx="27" cy="14" r="0.9" fill="#f0782a"/></symbol>
+<symbol id="i-uni" viewBox="0 0 32 32"><path d="M16 4 3 11h26z" fill="#2b8c8a"/><rect x="5" y="12" width="22" height="2" fill="#1c2427"/><rect x="7" y="15" width="3" height="9" fill="#2b8c8a"/><rect x="14.5" y="15" width="3" height="9" fill="#2b8c8a"/><rect x="22" y="15" width="3" height="9" fill="#2b8c8a"/><rect x="4" y="25" width="24" height="3" fill="#f0782a"/></symbol>
+<symbol id="i-zoo" viewBox="0 0 32 32"><circle cx="16" cy="20" r="6" fill="#f0782a"/><circle cx="8" cy="12" r="3" fill="#2b8c8a"/><circle cx="13" cy="7.5" r="3" fill="#2b8c8a"/><circle cx="19" cy="7.5" r="3" fill="#2b8c8a"/><circle cx="24" cy="12" r="3" fill="#2b8c8a"/></symbol>
+<symbol id="i-shop" viewBox="0 0 32 32"><path d="M7 11h18l-1.5 16h-15z" fill="#f0782a"/><path d="M12 11V9a4 4 0 0 1 8 0v2" fill="none" stroke="#1c2427" stroke-width="2"/><circle cx="16" cy="18" r="2.5" fill="#fde4d2"/></symbol>
+<symbol id="i-arch" viewBox="0 0 32 32"><path d="M10 6 17 1l7 5z" fill="#4a6fd0" opacity=".5"/><rect x="3" y="10" width="26" height="17" fill="#f2c94c"/><path d="M11 27v-7a5 5 0 0 1 10 0v7z" fill="#1c2427"/><rect x="3" y="8" width="26" height="3" fill="#f0782a"/><rect x="13" y="12" width="6" height="3" rx="1" fill="#fff"/></symbol>
+<symbol id="i-sunset" viewBox="0 0 32 32"><circle cx="16" cy="20" r="8" fill="#f0782a"/><rect x="2" y="20" width="28" height="9" fill="#2b8c8a"/><path d="M6 24h8M18 24h8" stroke="#d6ebe8" stroke-width="1.6" stroke-linecap="round"/></symbol>
+<symbol id="i-trail" viewBox="0 0 32 32"><path d="M2 28 13 10l6 8 4-5 7 15z" fill="#2b8c8a"/><path d="M13 28c2-5 6-6 4-11" fill="none" stroke="#fde4d2" stroke-width="2" stroke-dasharray="2 2"/><circle cx="24" cy="7" r="3" fill="#f0782a"/></symbol>
+<symbol id="i-volcano" viewBox="0 0 32 32"><path d="M3 28 12 12h8l9 16z" fill="#4a3f38"/><path d="M12 12h8l-2 4-2-2-2 2z" fill="#f0782a"/><circle cx="14" cy="7" r="3" fill="#b8b2aa"/><circle cx="19" cy="5" r="3.5" fill="#cfc9c1"/></symbol>
+<symbol id="i-pyramid" viewBox="0 0 32 32"><path d="M16 4 4 27h24z" fill="#c9a36b"/><path d="M8 19h16M10 15h12M12 11h8M6 23h20" stroke="#8a6d43" stroke-width="1.4"/><rect x="14" y="4" width="4" height="3" fill="#2b8c8a"/></symbol>
+<symbol id="i-beach" viewBox="0 0 32 32"><path d="M2 22c4-3 8 3 14 0s10 3 14 0v8H2z" fill="#2b8c8a"/><rect x="15" y="6" width="2" height="16" fill="#1c2427"/><path d="M5 10a11 6 0 0 1 22 0z" fill="#f0782a"/><circle cx="26" cy="5" r="2.5" fill="#f2c94c"/></symbol>
+<symbol id="i-wheel" viewBox="0 0 32 32"><circle cx="16" cy="13" r="9" fill="none" stroke="#f0782a" stroke-width="2.5"/><path d="M16 4v18M7 13h18M9.6 6.6l12.8 12.8M22.4 6.6 9.6 19.4" stroke="#f0782a" stroke-width="1.3"/><path d="M16 13 10 28h12z" fill="none" stroke="#1c2427" stroke-width="2"/><rect x="2" y="27" width="28" height="3" fill="#2b8c8a"/></symbol>
+<symbol id="i-home" viewBox="0 0 32 32"><path d="M16 4 3 15h4v12h18V15h4z" fill="#4a6fd0"/><rect x="13" y="18" width="6" height="9" fill="#f0782a"/></symbol>
+</defs></svg>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="f-HN" viewBox="0 0 30 20"><rect width="30" height="20" fill="#18b6d9"/><rect y="6.67" width="30" height="6.67" fill="#fff"/><path d="M15.00 8.75 L15.29 9.60 L16.19 9.61 L15.48 10.15 L15.73 11.01 L15.00 10.50 L14.27 11.01 L14.52 10.15 L13.81 9.61 L14.71 9.60Z" fill="#18b6d9"/><path d="M11.50 6.95 L11.79 7.80 L12.69 7.81 L11.98 8.35 L12.23 9.21 L11.50 8.70 L10.77 9.21 L11.02 8.35 L10.31 7.81 L11.21 7.80Z" fill="#18b6d9"/><path d="M18.50 6.95 L18.79 7.80 L19.69 7.81 L18.98 8.35 L19.23 9.21 L18.50 8.70 L17.77 9.21 L18.02 8.35 L17.31 7.81 L18.21 7.80Z" fill="#18b6d9"/><path d="M11.50 10.55 L11.79 11.40 L12.69 11.41 L11.98 11.95 L12.23 12.81 L11.50 12.30 L10.77 12.81 L11.02 11.95 L10.31 11.41 L11.21 11.40Z" fill="#18b6d9"/><path d="M18.50 10.55 L18.79 11.40 L19.69 11.41 L18.98 11.95 L19.23 12.81 L18.50 12.30 L17.77 12.81 L18.02 11.95 L17.31 11.41 L18.21 11.40Z" fill="#18b6d9"/></symbol>
+<symbol id="f-SV" viewBox="0 0 30 20"><rect width="30" height="20" fill="#0f47af"/><rect y="6.67" width="30" height="6.67" fill="#fff"/><circle cx="15" cy="10" r="2.6" fill="none" stroke="#2e8b3e" stroke-width=".9"/><path d="M15 8.2 16.6 11H13.4z" fill="#e8b923"/></symbol>
+<symbol id="f-GT" viewBox="0 0 30 20"><rect width="30" height="20" fill="#4997d0"/><rect x="10" width="10" height="20" fill="#fff"/><circle cx="15" cy="10" r="2.8" fill="none" stroke="#3a8a3a" stroke-width=".9" stroke-dasharray="1.6 .6"/><circle cx="15" cy="9.6" r="1" fill="#2f9a6a"/></symbol>
+</defs></svg>
+
+<div class="app">
+
+<header class="top">
+  <div class="glass">
+    <div class="glass-row">
+      <div class="me">
+        <div class="ring" id="ring"><span>IC</span></div>
+        <h1>Bienvenido, Isaac</h1>
+        <p class="hsub">Tu gira por Guatemala y El Salvador</p>
+      </div>
+    </div>
+    <div class="stats">
+      <span><svg viewBox="0 0 24 24"><path d="M12 2 22 12 12 22 2 12z"/></svg>15–21 nov</span>
+      <span class="lvl" id="lvl">Día 0/7</span>
+      <span><svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg><span id="tabCount">0/40</span></span>
+    </div>
+    <nav class="dayrow" id="dayrow" aria-label="Ir a un día">
+      <a href="#d15" data-day="d15"><b>Dom</b><span>15</span></a>
+      <a href="#d16" data-day="d16"><b>Lun</b><span>16</span></a>
+      <a href="#d17" data-day="d17"><b>Mar</b><span>17</span></a>
+      <a href="#d18" data-day="d18"><b>Mié</b><span>18</span></a>
+      <a href="#d19" data-day="d19"><b>Jue</b><span>19</span></a>
+      <a href="#d20" data-day="d20"><b>Vie</b><span>20</span></a>
+      <a href="#d21" data-day="d21"><b>Sáb</b><span>21</span></a>
+    </nav>
+  </div>
+  <a class="nowpill" id="nowpill" href="#itinerario"><i></i><span id="nowtext">Calculando…</span></a>
+</header>
+
+<section class="view" id="v-itinerario">
+  <div class="trail" id="trail">
+    <svg class="snake" id="snake" aria-hidden="true"></svg>
+    <ol class="rows" id="itinerarioList">
+<li class="row r first" id="d15" data-start="2026-11-15T04:00:00-06:00" data-end="2026-11-15T05:30:00-06:00" data-hour="4:00 AM" data-country="HN"><span class="daylabel"><svg viewBox="0 0 12 12"><path d="M6 1 11 6 6 11 1 6Z"/></svg>Día 1, domingo 15</span><span class="dayroute">Tegucigalpa → San Salvador</span>
+<div class="row-in"><div class="av "><span class="blob"></span><svg><use href="#i-bus"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-HN"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Salida de CU</b><span class="meta">4:00 AM – 5:30 AM · 1 h 30 min<br>Ciudad Universitaria, Tegucigalpa</span><div class="chips"><span class="temp cold">18°</span><button type="button" class="more" aria-expanded="false" aria-controls="det0"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det0" hidden><p>Llegá unos 20 minutos antes. Comé algo ligero, porque el primer alto largo es en la frontera.</p><p class="wear"><b>Qué ponerte</b>Ese día hay 60 % de probabilidad de lluvia en Tegus. Ponete una sudadera o chumpa impermeable, con camiseta fresca debajo, jeans y tenis.</p></div></li>
+<li class="row l" id="s1" data-start="2026-11-15T05:30:00-06:00" data-end="2026-11-15T10:00:00-06:00" data-hour="5:30 AM" data-country="HN">
+<div class="row-in"><div class="av "><span class="blob"></span><svg><use href="#i-bus"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-HN"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Recogida de Comayagua</b><span class="meta">5:30 AM – 10:00 AM · 4 h 30 min<br>Punto por definir</span><div class="chips"><span class="temp mild">20°</span><button type="button" class="more" aria-expanded="false" aria-controls="det1"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det1" hidden><p>Aprovechá para dormir. En el bus con aire va a hacer frío.</p><p class="wear"><b>Qué ponerte</b>Igual que a la salida, con la sudadera puesta.</p></div></li>
+<li class="row r" id="s2" data-start="2026-11-15T10:00:00-06:00" data-end="2026-11-15T11:00:00-06:00" data-hour="10:00 AM" data-country="HN>SV">
+<div class="row-in"><div class="av warm"><span class="blob"></span><svg><use href="#i-border"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-HN"/></svg><svg class="flag" aria-hidden="true"><use href="#f-SV"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Frontera Honduras–El Salvador</b><span class="meta">10:00 AM – 11:00 AM · 1 h <br>Probablemente El Amatillo, ruta por confirmar</span><div class="chips"><span class="temp hot">31°</span><button type="button" class="more" aria-expanded="false" aria-controls="det2"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det2" hidden><p>Bajás del bus con el DNI, pasás migración de los dos países y volvés a subir. Puede tardar entre 30 minutos y una hora. Ahí cambian lempiras a dólares, pero mejor cambiá en Honduras.</p><p class="wear"><b>Qué ponerte</b>Quitate la sudadera, hace mucho calor. Tené el DNI a mano y tomá agua.</p></div></li>
+<li class="row l" id="s3" data-start="2026-11-15T14:00:00-06:00" data-end="2026-11-15T15:30:00-06:00" data-hour="2:00 PM" data-country="SV">
+<div class="row-in"><div class="av "><span class="blob"></span><svg><use href="#i-city"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-SV"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Llegada a San Salvador</b><span class="meta">2:00 PM – 3:30 PM · 1 h 30 min<br>Capital de El Salvador, ~650 m de altura</span><div class="chips"><span class="temp hot">28°</span><button type="button" class="more" aria-expanded="false" aria-controls="det3"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det3" hidden><p>El Salvador usa dólares, así que ya no ocupás cambiar nada.</p><p class="wear"><b>Qué ponerte</b>Camiseta y jeans o pantalón ligero. Gorra y bloqueador.</p></div></li>
+<li class="row r" id="s4" data-start="2026-11-15T15:30:00-06:00" data-end="2026-11-15T17:30:00-06:00" data-hour="3:30 PM" data-country="SV">
+<div class="row-in"><div class="av warm"><span class="blob"></span><svg><use href="#i-rocks"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-SV"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Puerta del Diablo</b><span class="meta">3:30 PM – 5:30 PM · 2 h <br>Planes de Renderos, a unos 30 min del centro</span><div class="chips"><span class="temp mild">24°</span><button type="button" class="more" aria-expanded="false" aria-controls="det4"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det4" hidden><p>Son dos rocas gigantes partidas, con escaleras y senderos para subir a la cima. Desde arriba se ven el volcán de San Vicente, el lago de Ilopango y, si está despejado, el mar. A la vuelta, en Planes de Renderos, están las pupuserías más famosas del país.</p><p class="wear"><b>Qué ponerte</b>Hace viento en el mirador. Llevá la sudadera en la mochila y tenis con agarre, porque se sube por piedras.</p><a href="https://www.google.com/search?tbm=isch&amp;q=Puerta+del+Diablo+El+Salvador" target="_blank" rel="noopener">Ver fotos del lugar</a></div></li>
+<li class="row l" id="s5" data-start="2026-11-15T18:00:00-06:00" data-end="2026-11-15T20:00:00-06:00" data-hour="6:00 PM" data-country="SV">
+<div class="row-in"><div class="av "><span class="blob"></span><svg><use href="#i-church"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-SV"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Centro Histórico de San Salvador</b><span class="meta">6:00 PM – 8:00 PM · 2 h <br>Plaza Gerardo Barrios y Plaza Libertad</span><div class="chips"><span class="temp mild">23°</span><button type="button" class="more" aria-expanded="false" aria-controls="det5"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det5" hidden><p>Está recién renovado y de noche se ve bonito iluminado. Mirá la Catedral Metropolitana, donde está la tumba de San Óscar Romero, el Palacio Nacional, el Teatro Nacional y la iglesia El Rosario, que tiene unos vitrales modernos muy llamativos.</p><p class="wear"><b>Qué ponerte</b>Camiseta y jeans. Guardá bien el celular y la billetera.</p><a href="https://www.google.com/search?tbm=isch&amp;q=Centro+Historico+San+Salvador+catedral" target="_blank" rel="noopener">Ver fotos del lugar</a></div></li>
+<li class="row r" id="s6" data-start="2026-11-15T20:30:00-06:00" data-end="" data-hour="8:30 PM" data-country="SV">
+<div class="row-in"><div class="av cool"><span class="blob"></span><svg><use href="#i-moon"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-SV"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Noche en San Salvador</b><span class="meta">Desde las 8:30 PM<br>Descanso</span><div class="chips"><span class="temp mild">21°</span><button type="button" class="more" aria-expanded="false" aria-controls="det6"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det6" hidden><p>Mañana se sale temprano otra vez, así que dormí pronto.</p><p class="wear"><b>Qué ponerte</b>Ropa cómoda para dormir.</p></div></li>
+<li class="row l first" id="d16" data-start="2026-11-16T06:00:00-06:00" data-end="2026-11-16T08:30:00-06:00" data-hour="6:00 AM" data-country="SV"><span class="daylabel"><svg viewBox="0 0 12 12"><path d="M6 1 11 6 6 11 1 6Z"/></svg>Día 2, lunes 16</span><span class="dayroute">San Salvador → Ciudad de Guatemala</span>
+<div class="row-in"><div class="av "><span class="blob"></span><svg><use href="#i-bus"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-SV"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Salida de San Salvador</b><span class="meta">6:00 AM – 8:30 AM · 2 h 30 min</span><div class="chips"><span class="temp mild">21°</span><button type="button" class="more" aria-expanded="false" aria-controls="det7"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det7" hidden><p>Son unas 7 horas de viaje contando la frontera y paradas.</p><p class="wear"><b>Qué ponerte</b>Sudadera para el bus y camiseta fresca debajo.</p></div></li>
+<li class="row r" id="s8" data-start="2026-11-16T08:30:00-06:00" data-end="2026-11-16T09:30:00-06:00" data-hour="8:30 AM" data-country="SV>GT">
+<div class="row-in"><div class="av warm"><span class="blob"></span><svg><use href="#i-border"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-SV"/></svg><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Frontera El Salvador–Guatemala</b><span class="meta">8:30 AM – 9:30 AM · 1 h <br>Paso por confirmar</span><div class="chips"><span class="temp hot">27°</span><button type="button" class="more" aria-expanded="false" aria-controls="det8"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det8" hidden><p>El mismo trámite con el DNI. Del lado de Guatemala ya podés cambiar dólares a quetzales.</p><p class="wear"><b>Qué ponerte</b>Quitate la sudadera. DNI a mano.</p></div></li>
+<li class="row l" id="s9" data-start="2026-11-16T13:00:00-06:00" data-end="2026-11-16T14:30:00-06:00" data-hour="1:00 PM" data-country="GT">
+<div class="row-in"><div class="av cool"><span class="blob"></span><svg><use href="#i-hotel"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Check-in en Check Inn Hotel</b><span class="meta">1:00 PM – 2:30 PM · 1 h 30 min<br>Ciudad de Guatemala, ~1,500 m de altura</span><div class="chips"><span class="temp mild">25°</span><button type="button" class="more" aria-expanded="false" aria-controls="det9"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det9" hidden><p>Por la altura, el clima ya es más fresco que en San Salvador, y en la noche se siente frío.</p><p class="wear"><b>Qué ponerte</b>Igual que en el viaje. Dejá la ropa del curso colgada para que no se arrugue.</p><a href="https://www.google.com/search?tbm=isch&amp;q=Check+Inn+Hotel+Guatemala" target="_blank" rel="noopener">Ver fotos del lugar</a></div></li>
+<li class="row r" id="s10" data-start="2026-11-16T15:00:00-06:00" data-end="2026-11-16T18:00:00-06:00" data-hour="3:00 PM" data-country="GT">
+<div class="row-in"><div class="av "><span class="blob"></span><svg><use href="#i-church"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Centro histórico de Guatemala</b><span class="meta">3:00 PM – 6:00 PM · 3 h <br>Zona 1</span><div class="chips"><span class="temp mild">24° → 20°</span><button type="button" class="more" aria-expanded="false" aria-controls="det10"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det10" hidden><p>En la Plaza de la Constitución están el Palacio Nacional de la Cultura (el edificio verde) y la Catedral Metropolitana. Detrás de la Catedral está el Mercado Central, bueno para comprar artesanías. La Sexta Avenida es peatonal, con tiendas y comida.</p><p class="wear"><b>Qué ponerte</b>Camiseta y jeans. Llevá una chumpa ligera para cuando baje el sol.</p><a href="https://www.google.com/search?tbm=isch&amp;q=Plaza+de+la+Constitucion+Guatemala+Palacio+Nacional" target="_blank" rel="noopener">Ver fotos del lugar</a></div></li>
+<li class="row l" id="s11" data-start="2026-11-16T19:00:00-06:00" data-end="" data-hour="7:00 PM" data-country="GT">
+<div class="row-in"><div class="av cool"><span class="blob"></span><svg><use href="#i-moon"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Hotel</b><span class="meta">Desde las 7:00 PM</span><div class="chips"><span class="temp cold">17°</span><button type="button" class="more" aria-expanded="false" aria-controls="det11"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det11" hidden><p>Repasá lo del curso de mañana y prepará la ropa.</p><p class="wear"><b>Qué ponerte</b>Ropa abrigada para dormir.</p></div></li>
+<li class="row r first" id="d17" data-start="2026-11-17T08:30:00-06:00" data-end="2026-11-17T12:30:00-06:00" data-hour="8:30 AM" data-country="GT"><span class="daylabel"><svg viewBox="0 0 12 12"><path d="M6 1 11 6 6 11 1 6Z"/></svg>Día 3, martes 17</span><span class="dayroute">Curso presencial, día 1</span>
+<div class="row-in"><div class="av "><span class="blob"></span><svg><use href="#i-uni"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Curso en la Universidad Rafael Landívar</b><span class="meta">8:30 AM – 12:30 PM · 4 h <br>Campus Central, zona 16</span><div class="chips"><span class="temp cold">18° → 23°</span><button type="button" class="more" aria-expanded="false" aria-controls="det12"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det12" hidden><p>Es la primera sesión presencial del taller &quot;Comunicación efectiva: el arte de hablar en público&quot;. Trabajan el manejo de la ansiedad ante el público, la dicción y el control del aire. Puede que te toque hablar al frente, así que ve preparado.</p><p class="wear"><b>Qué ponerte</b>Semiformal: pantalón de vestir o jeans oscuros y camisa o polo. Suéter encima y zapatos cómodos, porque te quedás vestido así todo el día.</p><a href="https://www.google.com/search?tbm=isch&amp;q=Universidad+Rafael+Landivar+campus+central" target="_blank" rel="noopener">Ver fotos del lugar</a></div></li>
+<li class="row l" id="s13" data-start="2026-11-17T14:00:00-06:00" data-end="2026-11-17T16:30:00-06:00" data-hour="2:00 PM" data-country="GT">
+<div class="row-in"><div class="av "><span class="blob"></span><svg><use href="#i-zoo"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Zoológico La Aurora</b><span class="meta">2:00 PM – 4:30 PM · 2 h 30 min<br>Zona 13, cerca del aeropuerto</span><div class="chips"><span class="temp mild">25°</span><button type="button" class="more" aria-expanded="false" aria-controls="det13"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det13" hidden><p>Es el zoológico más grande de Guatemala, con zona africana, felinos y aviario. El recorrido completo toma unas 2 horas.</p><p class="wear"><b>Qué ponerte</b>Quitate el suéter. Gorra y bloqueador; se camina bastante.</p><a href="https://www.google.com/search?tbm=isch&amp;q=Zoologico+La+Aurora+Guatemala" target="_blank" rel="noopener">Ver fotos del lugar</a></div></li>
+<li class="row r" id="s14" data-start="2026-11-17T17:30:00-06:00" data-end="2026-11-17T20:00:00-06:00" data-hour="5:30 PM" data-country="GT">
+<div class="row-in"><div class="av warm"><span class="blob"></span><svg><use href="#i-shop"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Ciudad Cayalá</b><span class="meta">5:30 PM – 8:00 PM · 2 h 30 min<br>Zona 16, cerca de la URL</span><div class="chips"><span class="temp mild">19°</span><button type="button" class="more" aria-expanded="false" aria-controls="det14"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det14" hidden><p>Es un barrio peatonal con edificios blancos de estilo colonial, plazas, tiendas, cafés y restaurantes. De noche está iluminado y es seguro para caminar.</p><p class="wear"><b>Qué ponerte</b>Volvé a ponerte el suéter.</p><a href="https://www.google.com/search?tbm=isch&amp;q=Ciudad+Cayala+Guatemala" target="_blank" rel="noopener">Ver fotos del lugar</a></div></li>
+<li class="row l first" id="d18" data-start="2026-11-18T08:30:00-06:00" data-end="2026-11-18T12:30:00-06:00" data-hour="8:30 AM" data-country="GT"><span class="daylabel"><svg viewBox="0 0 12 12"><path d="M6 1 11 6 6 11 1 6Z"/></svg>Día 4, miércoles 18</span><span class="dayroute">Curso día 2 y Antigua</span>
+<div class="row-in"><div class="av "><span class="blob"></span><svg><use href="#i-uni"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Curso y visita guiada al campus</b><span class="meta">8:30 AM – 12:30 PM · 4 h <br>Universidad Rafael Landívar</span><div class="chips"><span class="temp cold">17° → 22°</span><button type="button" class="more" aria-expanded="false" aria-controls="det15"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det15" hidden><p>Es la última sesión del taller y después hacen el recorrido por el campus. Llevá el carné de la UNAH por si lo piden.</p><p class="wear"><b>Qué ponerte</b>Semiformal con suéter. Zapatos cómodos para el recorrido.</p><a href="https://www.google.com/search?tbm=isch&amp;q=Universidad+Rafael+Landivar" target="_blank" rel="noopener">Ver fotos del lugar</a></div></li>
+<li class="row r" id="s16" data-start="2026-11-18T14:00:00-06:00" data-end="2026-11-18T17:30:00-06:00" data-hour="2:00 PM" data-country="GT">
+<div class="row-in"><div class="av warm"><span class="blob"></span><svg><use href="#i-arch"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Llegada a Antigua Guatemala</b><span class="meta">2:00 PM – 5:30 PM · 3 h 30 min<br>A ~1 hora de la ciudad</span><div class="chips"><span class="temp mild">22°</span><button type="button" class="more" aria-expanded="false" aria-controls="det16"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det16" hidden><p>Fue la antigua capital y es Patrimonio de la Humanidad. Lo clásico es la foto en el Arco de Santa Catalina con el volcán de Agua al fondo. Visitá el Parque Central, la Catedral y La Merced, la iglesia amarilla. Si les da tiempo, el Cerro de la Cruz tiene la mejor vista de la ciudad. Para probar: pepián, chocolate artesanal y dulces típicos.</p><p class="wear"><b>Qué ponerte</b>Si podés, cambiate a tenis: las calles son de piedra.</p><a href="https://www.google.com/search?tbm=isch&amp;q=Arco+de+Santa+Catalina+Antigua+Guatemala" target="_blank" rel="noopener">Ver fotos del lugar</a></div></li>
+<li class="row l" id="s17" data-start="2026-11-18T17:30:00-06:00" data-end="2026-11-18T19:00:00-06:00" data-hour="5:30 PM" data-country="GT">
+<div class="row-in"><div class="av warm"><span class="blob"></span><svg><use href="#i-sunset"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Atardecer en Antigua</b><span class="meta">5:30 PM – 7:00 PM · 1 h 30 min<br>Parque Central</span><div class="chips"><span class="temp cold">16°</span><button type="button" class="more" aria-expanded="false" aria-controls="det17"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det17" hidden><p>Al caer el sol se enfría rápido. Es buena hora para un chocolate caliente.</p><p class="wear"><b>Qué ponerte</b>Chumpa puesta.</p><a href="https://www.google.com/search?tbm=isch&amp;q=Parque+Central+Antigua+Guatemala+noche" target="_blank" rel="noopener">Ver fotos del lugar</a></div></li>
+<li class="row r" id="s18" data-start="2026-11-18T19:00:00-06:00" data-end="2026-11-18T20:30:00-06:00" data-hour="7:00 PM" data-country="GT">
+<div class="row-in"><div class="av cool"><span class="blob"></span><svg><use href="#i-moon"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Regreso al hotel</b><span class="meta">7:00 PM – 8:30 PM · 1 h 30 min</span><div class="chips"><span class="temp cold">15°</span><button type="button" class="more" aria-expanded="false" aria-controls="det18"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det18" hidden><p>Dormí temprano, que el jueves es el volcán.</p><p class="wear"><b>Qué ponerte</b>Es la noche más fría del viaje en la ciudad.</p></div></li>
+<li class="row l first" id="d19" data-start="2026-11-19T06:00:00-06:00" data-end="2026-11-19T08:00:00-06:00" data-hour="6:00 AM" data-country="GT"><span class="daylabel"><svg viewBox="0 0 12 12"><path d="M6 1 11 6 6 11 1 6Z"/></svg>Día 5, jueves 19</span><span class="dayroute">Volcán de Pacaya</span>
+<div class="row-in"><div class="av "><span class="blob"></span><svg><use href="#i-bus"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Salida del hotel</b><span class="meta">6:00 AM – 8:00 AM · 2 h <br>Ciudad de Guatemala</span><div class="chips"><span class="temp cold">16°</span><button type="button" class="more" aria-expanded="false" aria-controls="det19"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det19" hidden><p>Son cerca de 2 horas hasta la entrada del parque. Desayuná bien antes de salir.</p><p class="wear"><b>Qué ponerte</b>Vestite por capas: camiseta, sudadera y chumpa cortaviento. Pantalón largo y tenis con buen agarre.</p></div></li>
+<li class="row r" id="s20" data-start="2026-11-19T08:00:00-06:00" data-end="2026-11-19T09:30:00-06:00" data-hour="8:00 AM" data-country="GT">
+<div class="row-in"><div class="av "><span class="blob"></span><svg><use href="#i-trail"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Inicio de la caminata</b><span class="meta">8:00 AM – 9:30 AM · 1 h 30 min<br>Entrada del Parque Nacional Volcán de Pacaya</span><div class="chips"><span class="temp mild">18°</span><button type="button" class="more" aria-expanded="false" aria-controls="det20"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det20" hidden><p>Son unos 2.8 km de subida, cortos pero empinados. Al inicio te ofrecen bastones de madera y caballos de alquiler. Si la gira no la cubre, la entrada para extranjeros anda por Q100.</p><p class="wear"><b>Qué ponerte</b>Al subir vas a sudar, así que quitate la sudadera y amarrala a la cintura.</p><a href="https://www.google.com/search?tbm=isch&amp;q=Volcan+de+Pacaya+sendero" target="_blank" rel="noopener">Ver fotos del lugar</a></div></li>
+<li class="row l" id="s21" data-start="2026-11-19T09:30:00-06:00" data-end="2026-11-19T11:00:00-06:00" data-hour="9:30 AM" data-country="GT">
+<div class="row-in"><div class="av warm"><span class="blob"></span><svg><use href="#i-volcano"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Parte alta del volcán</b><span class="meta">9:30 AM – 11:00 AM · 1 h 30 min<br>Campo de lava, 2,552 m es la cumbre</span><div class="chips"><span class="temp cold">13–17°</span><button type="button" class="more" aria-expanded="false" aria-controls="det21"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det21" hidden><p>Caminás sobre roca volcánica negra y ves el cono echando humo. En algunas grietas sale calor y ahí se asan malvaviscos, que venden al inicio del sendero. Hay vista a los volcanes de Agua, Fuego y Acatenango.</p><p class="wear"><b>Qué ponerte</b>Ahí sopla un viento frío y el sol pega fuerte. Chumpa, gorra, bloqueador y agua. Mejor ropa oscura, porque la ceniza mancha.</p><a href="https://www.google.com/search?tbm=isch&amp;q=Volcan+de+Pacaya+lava+malvaviscos" target="_blank" rel="noopener">Ver fotos del lugar</a></div></li>
+<li class="row r" id="s22" data-start="2026-11-19T15:00:00-06:00" data-end="2026-11-19T16:30:00-06:00" data-hour="3:00 PM" data-country="GT">
+<div class="row-in"><div class="av warm"><span class="blob"></span><svg><use href="#i-pyramid"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Museo Miraflores (por confirmar)</b><span class="meta">3:00 PM – 4:30 PM · 1 h 30 min<br>Zona 11, junto al centro comercial Miraflores</span><div class="chips"><span class="temp mild">24°</span><button type="button" class="more" aria-expanded="false" aria-controls="det22"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det22" hidden><p>Es un museo sobre Kaminaljuyú, la ciudad maya que hubo donde hoy está la capital. Tiene esculturas, cerámica y jade. La visita es corta y tranquila.</p><p class="wear"><b>Qué ponerte</b>Camiseta. Sacudí bien los tenis antes de entrar.</p><a href="https://www.google.com/search?tbm=isch&amp;q=Museo+Miraflores+Guatemala+Kaminaljuyu" target="_blank" rel="noopener">Ver fotos del lugar</a></div></li>
+<li class="row l first" id="d20" data-start="2026-11-20T06:00:00-06:00" data-end="2026-11-20T09:30:00-06:00" data-hour="6:00 AM" data-country="GT"><span class="daylabel"><svg viewBox="0 0 12 12"><path d="M6 1 11 6 6 11 1 6Z"/></svg>Día 6, viernes 20</span><span class="dayroute">Guatemala → La Libertad</span>
+<div class="row-in"><div class="av "><span class="blob"></span><svg><use href="#i-bus"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Salida de Ciudad de Guatemala</b><span class="meta">6:00 AM – 9:30 AM · 3 h 30 min</span><div class="chips"><span class="temp cold">16°</span><button type="button" class="more" aria-expanded="false" aria-controls="det23"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det23" hidden><p>Dejá la ropa de playa arriba en la maleta para sacarla fácil.</p><p class="wear"><b>Qué ponerte</b>Sudadera encima y ropa de playa a mano en la mochila.</p></div></li>
+<li class="row r" id="s24" data-start="2026-11-20T09:30:00-06:00" data-end="2026-11-20T10:30:00-06:00" data-hour="9:30 AM" data-country="GT>SV">
+<div class="row-in"><div class="av warm"><span class="blob"></span><svg><use href="#i-border"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-GT"/></svg><svg class="flag" aria-hidden="true"><use href="#f-SV"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Frontera Guatemala–El Salvador</b><span class="meta">9:30 AM – 10:30 AM · 1 h </span><div class="chips"><span class="temp hot">30°</span><button type="button" class="more" aria-expanded="false" aria-controls="det24"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det24" hidden><p>El mismo trámite con el DNI. Gastá los quetzales que te sobren antes de cruzar, porque en El Salvador no te sirven.</p><p class="wear"><b>Qué ponerte</b>Quitate la sudadera. DNI a mano.</p></div></li>
+<li class="row l" id="s25" data-start="2026-11-20T13:30:00-06:00" data-end="2026-11-20T15:30:00-06:00" data-hour="1:30 PM" data-country="SV">
+<div class="row-in"><div class="av warm"><span class="blob"></span><svg><use href="#i-beach"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-SV"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Llegada a La Libertad</b><span class="meta">1:30 PM – 3:30 PM · 2 h <br>Costa salvadoreña</span><div class="chips"><span class="temp hot">31°</span><button type="button" class="more" aria-expanded="false" aria-controls="det25"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det25" hidden><p>Es la zona de playas de surf: El Tunco, El Sunzal y el Puerto de La Libertad. En el muelle del puerto hay un mercado de mariscos.</p><p class="wear"><b>Qué ponerte</b>Cambiate a shorts, camiseta fresca y sandalias.</p><a href="https://www.google.com/search?tbm=isch&amp;q=Puerto+de+La+Libertad+El+Salvador+malecon" target="_blank" rel="noopener">Ver fotos del lugar</a></div></li>
+<li class="row r" id="s26" data-start="2026-11-20T15:30:00-06:00" data-end="2026-11-20T18:00:00-06:00" data-hour="3:30 PM" data-country="SV">
+<div class="row-in"><div class="av warm"><span class="blob"></span><svg><use href="#i-wheel"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-SV"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Sunset Park</b><span class="meta">3:30 PM – 6:00 PM · 2 h 30 min<br>Malecón del Puerto de La Libertad</span><div class="chips"><span class="temp hot">29°</span><button type="button" class="more" aria-expanded="false" aria-controls="det26"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det26" hidden><p>Es un parque de diversiones frente al mar, con rueda de chicago y juegos mecánicos. Tratá de quedarte hasta la puesta de sol, que se ve desde el malecón.</p><p class="wear"><b>Qué ponerte</b>Lentes de sol, gorra y bloqueador. Traje de baño si te vas a meter al mar, que ahí las olas son fuertes.</p><a href="https://www.google.com/search?tbm=isch&amp;q=Sunset+Park+La+Libertad+El+Salvador" target="_blank" rel="noopener">Ver fotos del lugar</a></div></li>
+<li class="row l" id="s27" data-start="2026-11-20T19:00:00-06:00" data-end="" data-hour="7:00 PM" data-country="SV">
+<div class="row-in"><div class="av cool"><span class="blob"></span><svg><use href="#i-moon"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-SV"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Pernocta en La Libertad</b><span class="meta">Desde las 7:00 PM</span><div class="chips"><span class="temp hot">26°</span><button type="button" class="more" aria-expanded="false" aria-controls="det27"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det27" hidden><p>Es la última noche del viaje. Aprovechá para cenar pupusas o mariscos.</p><p class="wear"><b>Qué ponerte</b>Ropa fresca y repelente de zancudos.</p></div></li>
+<li class="row r first" id="d21" data-start="2026-11-21T06:30:00-06:00" data-end="2026-11-21T11:00:00-06:00" data-hour="6:30 AM" data-country="SV"><span class="daylabel"><svg viewBox="0 0 12 12"><path d="M6 1 11 6 6 11 1 6Z"/></svg>Día 7, sábado 21</span><span class="dayroute">Regreso a Tegucigalpa</span>
+<div class="row-in"><div class="av "><span class="blob"></span><svg><use href="#i-bus"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-SV"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Salida de La Libertad</b><span class="meta">6:30 AM – 11:00 AM · 4 h 30 min</span><div class="chips"><span class="temp hot">26°</span><button type="button" class="more" aria-expanded="false" aria-controls="det28"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det28" hidden><p>Revisá que no se te quede nada en el cuarto, sobre todo el cargador y el DNI.</p><p class="wear"><b>Qué ponerte</b>Ropa cómoda y fresca, con la sudadera a mano por el aire del bus.</p></div></li>
+<li class="row l" id="s29" data-start="2026-11-21T11:00:00-06:00" data-end="2026-11-21T12:00:00-06:00" data-hour="11:00 AM" data-country="SV>HN">
+<div class="row-in"><div class="av warm"><span class="blob"></span><svg><use href="#i-border"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-SV"/></svg><svg class="flag" aria-hidden="true"><use href="#f-HN"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Frontera El Salvador–Honduras</b><span class="meta">11:00 AM – 12:00 PM · 1 h <br>Probablemente El Amatillo</span><div class="chips"><span class="temp hot">33°</span><button type="button" class="more" aria-expanded="false" aria-controls="det29"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det29" hidden><p>Es el último cruce y el punto más caliente del viaje.</p><p class="wear"><b>Qué ponerte</b>Agua y gorra.</p></div></li>
+<li class="row r" id="s30" data-start="2026-11-21T16:00:00-06:00" data-end="" data-hour="4:00 PM" data-country="HN">
+<div class="row-in"><div class="av cool"><span class="blob"></span><svg><use href="#i-home"/></svg><span class="flagbadge"><svg class="flag" aria-hidden="true"><use href="#f-HN"/></svg></span><span class="tick"><svg viewBox="0 0 16 16"><path d="M3.5 8.5 6.5 11.5 12.5 5"/></svg></span></div>
+<div class="txt"><b>Llegada a Tegucigalpa</b><span class="meta">Desde las 4:00 PM<br>CU</span><div class="chips"><span class="temp mild">26°</span><button type="button" class="more" aria-expanded="false" aria-controls="det30"><svg viewBox="0 0 14 14"><path d="M2 4h10M2 7h10M2 10h6"/></svg><span>Detalles</span></button><span class="state"></span></div></div></div>
+<div class="detail" id="det30" hidden><p>El domingo 22 los estudiantes de Centros Regionales regresan a sus municipios.</p><p class="wear"><b>Qué ponerte</b>Vas a llegar cansado, nada especial que ponerte.</p></div></li>
+    </ol>
+  </div>
+  <p class="note"><a href="#info" class="inl">Ver el curso y consejos</a><br>Horas aproximadas. Temperaturas del 15 al 18 según el pronóstico del 11 de noviembre; del 19 al 21, estimadas para la época.</p>
+</section>
+
+<section class="view" id="v-checklist" hidden>
+  <div class="vhead"><h2>Checklist de maleta</h2><p id="saveNote">Marcá lo que ya tenés listo.</p></div>
+  <div class="card">
+    <div class="progress"><div class="bar" aria-hidden="true"><i id="barFill"></i></div><span class="count" id="count">0/0</span></div>
+    <div class="toolbar"><button type="button" class="pillbtn" id="editList" aria-pressed="false">Editar lista</button><button type="button" class="reset" id="reset">Desmarcar todo</button></div>
+    <div id="pack"></div>
+    <form id="newGroup" class="addrow grouprow"><input type="text" placeholder="Nueva categoría…" aria-label="Nueva categoría"><button type="submit" aria-label="Crear categoría"><svg viewBox="0 0 14 14"><path d="M7 2v10M2 7h10"/></svg></button></form>
+  </div>
+</section>
+
+
+<section class="view" id="v-gastos" hidden>
+  <div class="vhead"><h2>Mis gastos</h2><p>Anotá cada gasto en la moneda que pagaste. El total se muestra en la que elijás.</p></div>
+  <form class="card" id="gForm">
+    <h3>Agregar gasto</h3>
+    <div class="seg" id="gCur" role="group" aria-label="Moneda en que pagaste"><button type="button" data-v="HNL">L</button><button type="button" data-v="USD">$</button><button type="button" data-v="GTQ">Q</button></div>
+    <div class="amt"><span id="gSym">L</span><input id="gAmt" type="text" inputmode="decimal" placeholder="0.00" aria-label="Monto" autocomplete="off">
+      <div class="stepper"><button type="button" id="gUp" aria-label="Subir monto"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button><button type="button" id="gDown" aria-label="Bajar monto"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
+    </div>
+    <p class="muted small" id="gStepHint">Cada flechita suma o resta L 0.5. Dejala presionada y después de unos segundos avanza de 5 en 5.</p>
+    <input id="gDesc" class="field" type="text" placeholder="¿En qué? Ej. pupusas en Planes de Renderos" aria-label="Descripción" autocomplete="off">
+    <div class="formrow"><select id="gKind" class="field" aria-label="Categoría"><option>Comida</option><option>Transporte</option><option>Entradas</option><option>Compras</option><option>Otros</option></select><button class="btn" type="submit">Agregar</button></div>
+    <p class="muted small" id="gAdded" aria-live="polite"></p>
+  </form>
+  <div class="card"><div id="gList"></div></div>
+  <details class="card rates">
+    <summary>Tipo de cambio y presupuesto</summary>
+    <label class="raterow" for="rHNL"><span>1 dólar en lempiras</span><input id="rHNL" type="number" step="0.01" min="0" inputmode="decimal"></label>
+    <label class="raterow" for="rGTQ"><span>1 dólar en quetzales</span><input id="rGTQ" type="number" step="0.01" min="0" inputmode="decimal"></label>
+    <label class="raterow" for="gBudget"><span>Presupuesto total (<span id="gBudgetCur">L</span>)</span><input id="gBudget" type="number" step="1" min="0" inputmode="decimal" placeholder="Opcional"></label>
+    <p class="muted small">El dólar está a unos L 27.04 en venta según el Banco Central de Honduras (5 de noviembre). Cambiá estos valores por el que te den en la casa de cambio.</p>
+  </details>
+  <div class="card total">
+    <div class="seg" id="gDisplay" role="group" aria-label="Moneda del total"><button type="button" data-v="HNL">Lempiras</button><button type="button" data-v="USD">Dólares</button></div>
+    <p class="muted">Total gastado</p>
+    <p class="big" id="gTotal">L 0.00</p>
+    <p class="muted" id="gAlt"></p>
+    <div id="gBudgetWrap" hidden><div class="bar"><i id="gBudgetFill"></i></div><p class="muted small" id="gBudgetTxt"></p></div>
+    <div class="cats" id="gCats"></div>
+  </div>
+</section>
+
+<section class="view" id="v-ropa" hidden>
+  <div class="vhead"><h2>Mis mudadas</h2><p>Tomale foto a la camisa, el pantalón y los zapatos, y si querés también al abrigo, la gorra y el reloj. Después elegí el día y para qué es. Hasta 3 mudadas por día.</p></div>
+  <button type="button" class="newfit" id="newFit"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Nueva mudada</button>
+  <form class="card editor" id="fitEditor" hidden>
+    <h3 id="fitTitle">Nueva mudada</h3>
+    <div class="shots">
+      <label class="shot" for="ph-camisa"><input type="file" id="ph-camisa" accept="image/*" data-part="camisa"><span class="ph"><svg viewBox="0 0 24 24"><path d="M8 3 4 5.5 2.5 9.5l3 1.5V21h13V11l3-1.5L20 5.5 16 3c-.6 1.6-2.2 2.6-4 2.6S8.6 4.6 8 3z"/></svg></span><img alt=""><b>Camisa</b></label>
+      <label class="shot" for="ph-pantalon"><input type="file" id="ph-pantalon" accept="image/*" data-part="pantalon"><span class="ph"><svg viewBox="0 0 24 24"><path d="M6 3h12l1 18h-5l-2-11-2 11H5z"/></svg></span><img alt=""><b>Pantalón</b></label>
+      <label class="shot" for="ph-zapatos"><input type="file" id="ph-zapatos" accept="image/*" data-part="zapatos"><span class="ph"><svg viewBox="0 0 24 24"><path d="M3 15c0-2 .5-6 2-8l3 1c1 2 3 3 6 3.5 3 .5 7 1.5 7 4.5v1H3z"/><path d="M3 17.5h18"/></svg></span><img alt=""><b>Zapatos</b></label>
+      <label class="shot" for="ph-abrigo"><input type="file" id="ph-abrigo" accept="image/*" data-part="abrigo"><span class="ph"><svg viewBox="0 0 24 24"><path d="M9 3h6l5 3 1.5 6-3 1V21H5.5v-8l-3-1L4 6z"/><path d="M12 6v15M9 3l3 3 3-3"/></svg></span><img alt=""><b>Abrigo <span class="opt">opcional</span></b></label>
+      <label class="shot" for="ph-gorra"><input type="file" id="ph-gorra" accept="image/*" data-part="gorra"><span class="ph"><svg viewBox="0 0 24 24"><path d="M4 15a8 7 0 0 1 16 0z"/><path d="M4 15h17.5c.8 0 1 1 .3 1.4L20 17.5H4z"/><path d="M12 8V6.5"/></svg></span><img alt=""><b>Gorra <span class="opt">opcional</span></b></label>
+      <label class="shot" for="ph-reloj"><input type="file" id="ph-reloj" accept="image/*" data-part="reloj"><span class="ph"><svg viewBox="0 0 24 24"><rect x="7" y="7" width="10" height="10" rx="3"/><path d="M9 7l.7-4h4.6L15 7M9 17l.7 4h4.6l.7-4M12 10v2.3l1.5 1"/></svg></span><img alt=""><b>Reloj <span class="opt">opcional</span></b></label>
+    </div>
+    <p class="muted small">Tocá cada cuadro para tomar la foto o elegirla de tu galería.</p>
+    <div class="fld"><span class="lbl">¿Qué día?</span><div class="daychips" id="fitDays"></div></div>
+    <div class="fld"><span class="lbl">¿Para qué es?</span><div class="purpose" id="fitPurposeChips"></div>
+      <input id="fitPurpose" class="field" type="text" placeholder="O escribí otra cosa, ej. cena con el grupo" autocomplete="off" aria-label="Para qué es la mudada"></div>
+    <p class="err small" id="fitErr" aria-live="polite"></p>
+    <div class="formrow"><button type="button" class="reset" id="fitCancel">Cancelar</button><button class="btn" type="submit" id="fitSave">Guardar mudada</button></div>
+  </form>
+  <div id="fitList"></div>
+</section>
+<div class="viewer" id="viewer" hidden role="dialog" aria-modal="true" aria-label="Foto de la mudada">
+  <div class="vbox"><img alt=""><p class="vt"></p><p class="muted small">Tocá Guardar para pasarla a tu teléfono. En iPhone elegí "Guardar imagen" para que quede en Fotos.</p>
+  <div class="formrow"><button type="button" class="reset vclose">Cerrar</button><button type="button" class="btn vsave">Guardar en el teléfono</button></div></div>
+</div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+
+<section class="view" id="v-info" hidden>
+  <div class="vhead"><h2>El curso y consejos</h2><p>Lo que dice la presentación de la UNAH y lo que conviene saber.</p></div>
+  <div id="cursoBox"><div class="card info">
+    <div class="irow"><span>Taller</span><p>Comunicación efectiva: el arte de hablar en público, en la Universidad Rafael Landívar.</p></div>
+    <div class="irow"><span>Qué aprendés</span><p>Manejo de la ansiedad ante el público, dicción y control del aire, cómo hablar frente a la cámara en videollamadas, cómo captar la atención y las normas de etiqueta en lo virtual.</p></div>
+    <div class="irow"><span>Virtual</span><p>Miércoles 11 y viernes 13 de noviembre, 6:00 a 8:00 PM (2 sesiones de 2 horas).</p></div>
+    <div class="irow"><span>Presencial</span><p>Martes 17 y miércoles 18 de noviembre, 8:30 AM a 12:30 PM (2 sesiones de 4 horas). Son 12 horas en total.</p></div>
+    <div class="irow"><span>Costo</span><p>Q791.25 por participante, unos $105, ya con descuento.</p></div>
+    <div class="irow"><span>Viaje</span><p>Plan A, del domingo 15 al sábado 21 de noviembre.</p></div>
+    <div class="irow"><span>Documentos</span><p>Para viajar, el DNI si sos mayor de edad. La UNAH pide además historial académico, Forma 003 y copia del DNI. Si tenés menos de 21 años, también copia del pasaporte. Según la presentación, se entregan entre el 22 y el 24 de noviembre a las licenciadas Yesenia Díaz o Bessy Fuentes; confirmá esa fecha.</p></div>
+  </div>
+</div>
+  <div class="card">
+    <h3>Vestite por capas</h3>
+    <p>Un mismo día pasás de 18° en la madrugada a más de 30° en la frontera, y Guatemala está a 1,500 m de altura. Andá con camiseta fresca y encima una sudadera o chumpa que te podás quitar.</p>
+    <div class="legend"><span class="temp cold">Frío, menos de 19°</span><span class="temp mild">Agradable, 19 a 26°</span><span class="temp hot">Calor, más de 26°</span></div>
+  </div>
+  <div id="consejosBox"><div class="card tips">
+    <div class="tip"><b>Fronteras</b><p>Con el DNI basta para Guatemala y El Salvador gracias al convenio CA-4 (mayores de 18). Son 4 cruces, así que llevalo en un bolsillo con zíper y no en la maleta grande.</p></div>
+    <div class="tip"><b>Dinero</b><p>Guatemala usa quetzales y El Salvador usa dólares. Cambiá lempiras a dólares antes de salir; los quetzales, en la frontera o en Guatemala. La entrada al Pacaya para extranjeros anda por Q100 (unos $13), si la gira no la cubre.</p></div>
+    <div class="tip"><b>Celular</b><p>Antes de salir, preguntale a Claro si tu paquete funciona en Guatemala y El Salvador; algunos paquetes de Honduras solo sirven dentro del país. Si no, una SIM local en Guatemala sale barata. Descargá los mapas de Google Maps para usarlos sin datos.</p></div>
+    <div class="tip"><b>Comida para probar</b><p>En El Salvador, pupusas con curtido. En Guatemala, pepián, tamal colorado y chocolate artesanal en Antigua.</p></div>
+  </div>
+</div>
+</section>
+
+</div>
+
+<nav class="dock" aria-label="Secciones">
+  <a href="#itinerario" data-view="itinerario"><svg viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/></svg>Itinerario</a>
+  <a href="#checklist" data-view="checklist"><svg viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2.5"/><path d="M9 4.5V3h6v1.5"/><path d="M8.5 10l1.5 1.5 2.5-2.5M8.5 16l1.5 1.5 2.5-2.5M14.5 10.5h1.5M14.5 16.5h1.5"/></svg>Checklist</a>
+  <a href="#ahora" class="center" id="goNow" aria-label="Ir a donde estoy ahora"><svg viewBox="0 0 24 24"><circle cx="12" cy="11" r="3"/><path d="M12 21s-7-6.2-7-11a7 7 0 0 1 14 0c0 4.8-7 11-7 11z"/></svg></a>
+  <a href="#gastos" data-view="gastos"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18"/><circle cx="16" cy="14.5" r="1.3"/></svg>Gastos</a>
+  <a href="#ropa" data-view="ropa"><svg viewBox="0 0 24 24"><path d="M12 7.5V6.8a2 2 0 1 1 2-2"/><path d="M12 7.5 3 14.5c-.8.6-.4 1.9.6 1.9h16.8c1 0 1.4-1.3.6-1.9z"/></svg>Ropa</a>
+</nav>
+
+<script>
+/* ---------- Vistas ---------- */
+(function () {
+  var views = ["itinerario", "checklist", "gastos", "ropa", "info"];
+  function show() {
+    var h = (location.hash || "").slice(1);
+    if (h === "ahora") { location.replace("#itinerario"); setTimeout(function () { var n = document.querySelector(".row.now, .row.next"); if (n) n.scrollIntoView({ block: "center" }); }, 60); return; }
+    var v = views.indexOf(h) >= 0 ? h : "itinerario";
+    views.forEach(function (n) { document.getElementById("v-" + n).hidden = n !== v; });
+    document.querySelectorAll(".dock a[data-view]").forEach(function (a) { if (a.dataset.view === v) a.setAttribute("aria-current", "page"); else a.removeAttribute("aria-current"); });
+    if (views.indexOf(h) >= 0) window.scrollTo(0, 0);
+    if (v === "itinerario") window.dispatchEvent(new Event("gira:redraw"));
+  }
+  window.addEventListener("hashchange", show); show();
+})();
+
+
+/* ---------- Círculos de días ---------- */
+(function () {
+  var links = document.querySelectorAll("#dayrow a");
+  function go(id) {
+    var el = document.getElementById(id); if (!el) return;
+    var top = document.querySelector(".top"), off = top ? top.getBoundingClientRect().height + 30 : 220;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.pageYOffset - off, behavior: "smooth" });
+    links.forEach(function (a) { a.classList.toggle("sel", a.dataset.day === id); });
+  }
+  links.forEach(function (a) {
+    a.addEventListener("click", function (e) {
+      e.preventDefault();
+      if (location.hash !== "#itinerario" && location.hash !== "") { location.hash = "itinerario"; setTimeout(function () { go(a.dataset.day); }, 80); }
+      else go(a.dataset.day);
+    });
+  });
+  function mark() {
+    var t = window.__now || Date.now();
+    links.forEach(function (a, i) {
+      var s = new Date("2026-11-" + (15 + i) + "T00:00:00-06:00").getTime(), e = s + 86400000;
+      a.classList.toggle("today", t >= s && t < e); a.classList.toggle("past", t >= e);
+    });
+  }
+  mark(); setInterval(mark, 60000);
+})();
+
+/* ---------- Detalles ---------- */
+document.querySelectorAll(".more").forEach(function (b) {
+  b.addEventListener("click", function () {
+    var d = document.getElementById(b.getAttribute("aria-controls")), open = b.getAttribute("aria-expanded") === "true";
+    b.setAttribute("aria-expanded", open ? "false" : "true"); d.hidden = open;
+    b.querySelector("span").textContent = open ? "Detalles" : "Cerrar";
+    window.dispatchEvent(new Event("gira:redraw"));
+  });
+});
+
+/* ---------- Camino serpenteante y bolita ---------- */
+(function () {
+  var NS = "http://www.w3.org/2000/svg", M = 9;
+  var TRIP_START = new Date("2026-11-15T04:00:00-06:00").getTime(), TRIP_END = new Date("2026-11-21T16:00:00-06:00").getTime();
+  function now() { return window.__now || Date.now(); }
+  var rows = Array.prototype.slice.call(document.querySelectorAll("#itinerarioList > .row"));
+  rows.forEach(function (li) { li._s = new Date(li.dataset.start).getTime(); li._e = li.dataset.end ? new Date(li.dataset.end).getTime() : li._s + 30 * 60000; });
+  function nm(li) { return li.querySelector(".txt b").textContent; }
+  function hr(li) { return li.dataset.hour; }
+  function fmt(ms) { var m = Math.max(0, Math.round(ms / 60000)), d = Math.floor(m / 1440), h = Math.floor((m % 1440) / 60), mm = m % 60; return (d ? d + (d === 1 ? " día " : " días ") : "") + (h ? h + " h" : "") + (!d && !h ? mm + " min" : (!d ? " " + mm + " min" : "")); }
+
+  function draw() {
+    var svg = document.getElementById("snake"), ol = document.getElementById("itinerarioList");
+    var hiddenView = !ol.offsetParent;
+    var t = now(), cur = -1;
+    for (var i = 0; i < rows.length; i++) if (rows[i]._s <= t) cur = i;
+    var ended = t >= TRIP_END + 3600000;
+    rows.forEach(function (li, i) {
+      li.classList.remove("now", "next", "past");
+      if (ended || (cur >= 0 && i < cur)) li.classList.add("past");
+      else if (i === cur) li.classList.add(t <= li._e ? "now" : "past");
+      if (!ended && i === cur + 1) li.classList.add("next");
+    });
+
+    if (!hiddenView) {
+    var W = ol.clientWidth, ys = [];
+    rows.forEach(function (li) { ys.push(li.offsetTop); });
+    ys.push(ol.clientHeight);
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    var pieces = [];
+    function add(d, cls) { var p = document.createElementNS(NS, "path"); p.setAttribute("d", d); p.setAttribute("class", cls); svg.appendChild(p); pieces.push(p); return p; }
+    var anchors = [], hStarts = [];
+    for (var k = 0; k < rows.length; k++) {
+      var y0 = ys[k], y1 = ys[k + 1], h = y1 - y0, r = Math.min(46, h / 2), right = k % 2 === 0;
+      var xs = right ? M + r : W - M - r, xe = right ? W - M - r : M + r, xt = right ? W - M : M, mid = (y0 + y1) / 2;
+      if (k === 0) xs = right ? W * 0.18 : W * 0.82;
+      hStarts.push(pieces.length);
+      add("M" + xs + " " + y0 + " L" + xe + " " + y0, rows[k].classList.contains("first") ? "dash" : "solid");
+      var sweep = right ? 1 : 0;
+      add("M" + xe + " " + y0 + " A" + r + " " + r + " 0 0 " + sweep + " " + xt + " " + (y0 + r) + " L" + xt + " " + mid, "solid");
+      anchors.push(pieces.length - 1);
+      add("M" + xt + " " + mid + " L" + xt + " " + (y1 - r) + " A" + r + " " + r + " 0 0 " + sweep + " " + xe + " " + y1, "solid");
+    }
+    var lastRight = (rows.length - 1) % 2 === 0, yl = ys[rows.length], xl = lastRight ? W - M - Math.min(46, (ys[rows.length] - ys[rows.length - 1]) / 2) : M + 46;
+    add("M" + xl + " " + yl + " L" + (lastRight ? W * 0.3 : W * 0.7) + " " + yl, "dash");
+
+    function pointOn(idxFrom, idxTo, f) {
+      var lens = [], total = 0;
+      for (var i = idxFrom; i <= idxTo; i++) { var L = pieces[i].getTotalLength(); lens.push(L); total += L; }
+      var s = total * f;
+      for (var j = 0; j < lens.length; j++) { if (s <= lens[j] || j === lens.length - 1) return pieces[idxFrom + j].getPointAtLength(Math.min(s, lens[j])); s -= lens[j]; }
+    }
+    var pos;
+    if (cur < 0) pos = pieces[0].getPointAtLength(0);
+    else if (ended) { var lp = pieces[pieces.length - 1]; pos = lp.getPointAtLength(lp.getTotalLength()); }
+    else {
+      var c = rows[cur], a = anchors[cur];
+      if (t <= c._e || cur === rows.length - 1) pos = pieces[a].getPointAtLength(pieces[a].getTotalLength());
+      else { var n = rows[cur + 1], f = Math.min(1, Math.max(0, (t - c._e) / (n._s - c._e))); pos = pointOn(a + 1, anchors[cur + 1], f); }
+    }
+    var halo = document.createElementNS(NS, "circle"); halo.setAttribute("class", "halo"); halo.setAttribute("cx", pos.x); halo.setAttribute("cy", pos.y); halo.setAttribute("r", 15); svg.appendChild(halo);
+    var w = document.createElementNS(NS, "circle"); w.setAttribute("class", "walker"); w.setAttribute("cx", pos.x); w.setAttribute("cy", pos.y); w.setAttribute("r", 9); svg.appendChild(w);
+    }
+
+
+    // encabezado
+    var dayIdx = cur < 0 ? 0 : Array.prototype.indexOf.call(document.querySelectorAll(".row.first"), rows.slice(0, cur + 1).filter(function (r) { return r.classList.contains("first"); }).pop()) + 1;
+    var prog = t <= TRIP_START ? 0 : t >= TRIP_END ? 100 : (t - TRIP_START) / (TRIP_END - TRIP_START) * 100;
+    document.getElementById("ring").style.setProperty("--p", prog.toFixed(1));
+    document.getElementById("lvl").textContent = ended ? "Terminado" : "Día " + dayIdx + "/7";
+    var txt;
+    if (t < TRIP_START) txt = "Salida en " + fmt(TRIP_START - t);
+    else if (ended) txt = "Viaje terminado";
+    else { var cc = rows[cur], nx = rows[cur + 1]; txt = (t > cc._e && nx) ? "En ruta: " + nm(nx) : "Estás en " + nm(cc); }
+    document.getElementById("nowtext").textContent = txt;
+  }
+  draw();
+  window.addEventListener("resize", draw);
+  window.addEventListener("gira:redraw", draw);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+  if (window.ResizeObserver) new ResizeObserver(function () { draw(); }).observe(document.getElementById("itinerarioList"));
+  document.getElementById("nowpill").addEventListener("click", function (e) { e.preventDefault(); location.hash = "ahora"; });
+  setInterval(draw, 60000);
+})();
+
+/* ---------- Almacenamiento: nube (db por persona) con respaldo local ---------- */
+var Store = (function () {
+  var refs = {}, busy = {}, pending = {}, mode = "local", readyP;
+  function lsGet(k) { try { return JSON.parse(localStorage.getItem("gira-" + k) || "null"); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem("gira-" + k, JSON.stringify(v)); } catch (e) {} }
+  readyP = new Promise(function (resolve) {
+    var done = false, timer = setTimeout(function () { if (!done) { done = true; resolve(); } }, 10000);
+    if (!(window.claude && window.claude.use)) { done = true; clearTimeout(timer); resolve(); return; }
+    Promise.all([window.claude.use("db"), window.claude.use("user")]).then(function (r) {
+      var db = r[0], u = r[1];
+      if (!db || !u) throw 0;
+      return u.id().then(function (id) {
+        if (!id) throw 0;
+        var col = db.collection("data/users/" + id);
+        refs.checklist = col.doc("checklist"); refs.gastos = col.doc("gastos"); refs.col = col;
+        mode = "cloud";
+      });
+    }).catch(function () {}).then(function () { if (!done) { done = true; clearTimeout(timer); resolve(); } });
+  });
+  function load(k) {
+    return readyP.then(function () {
+      if (mode !== "cloud") return lsGet(k);
+      return refs[k].get().then(function (s) { var v = s.exists ? JSON.parse(JSON.stringify(s.data())) : null; return v || lsGet(k); })
+        .catch(function () { mode = "local"; return lsGet(k); });
+    });
+  }
+  function flush(k) {
+    if (busy[k] || !pending[k]) return;
+    var v = pending[k]; pending[k] = null; busy[k] = true;
+    refs[k].set(v).catch(function (e) { if (e && (e.code === "invalid_argument" || e.code === "revoked" || e.code === "not_granted")) mode = "local"; })
+      .then(function () { busy[k] = false; flush(k); });
+  }
+  function save(k, v) { lsSet(k, v); if (mode === "cloud") { pending[k] = v; flush(k); } }
+  var idbP = null;
+  function idb() {
+    if (idbP) return idbP;
+    idbP = new Promise(function (res) {
+      try {
+        var rq = indexedDB.open("gira", 1);
+        rq.onupgradeneeded = function () { rq.result.createObjectStore("mudadas", { keyPath: "id" }); };
+        rq.onsuccess = function () { res(rq.result); };
+        rq.onerror = function () { res(null); };
+      } catch (e) { res(null); }
+    });
+    return idbP;
+  }
+  function tx(mode2, fn) { return idb().then(function (d) { if (!d) return null; return new Promise(function (res) { var s = d.transaction("mudadas", mode2).objectStore("mudadas"), r = fn(s); r.onsuccess = function () { res(r.result); }; r.onerror = function () { res(null); }; }); }); }
+  function localList() {
+    return tx("readonly", function (s) { return s.getAll(); }).then(function (list) {
+      var old = lsGet("mudadas") || {}, extra = Object.keys(old).map(function (k) { return old[k]; });
+      if (list === null) return extra;
+      if (extra.length) { extra.forEach(function (f) { tx("readwrite", function (s) { return s.put(f); }); }); try { localStorage.removeItem("gira-mudadas"); } catch (e) {} }
+      return list.concat(extra.filter(function (f) { return !list.some(function (x) { return x.id === f.id; }); }));
+    });
+  }
+  function listFits() {
+    return readyP.then(function () {
+      if (mode !== "cloud") return localList();
+      return refs.col.where("kind", "==", "mudada").get().then(function (q) { return q.docs.map(function (d) { return JSON.parse(JSON.stringify(d.data())); }); }).catch(localList);
+    });
+  }
+  function saveFitLocal(f) { return tx("readwrite", function (s) { return s.put(f); }); }
+  function saveFit(f) {
+    var local = saveFitLocal(f);
+    return readyP.then(function () {
+      if (mode === "cloud") return refs.col.doc(f.id).set(f).then(function () { return "cloud"; });
+      return local.then(function (r) { if (r === null) throw new Error("no idb"); return "local"; });
+    });
+  }
+  function delFit(id) {
+    tx("readwrite", function (s) { return s.delete(id); });
+    if (mode === "cloud") return refs.col.doc(id).delete().catch(function () {});
+    return Promise.resolve();
+  }
+  return { load: load, save: save, ready: readyP, mode: function () { return mode; }, listFits: listFits, localFits: localList, saveFit: saveFit, delFit: delFit };
+
+})();
+function uid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
+function esc(s) { var d = document.createElement("div"); d.textContent = s; return d.innerHTML; }
+
+/* ---------- Checklist editable ---------- */
+(function () {
+  var TEMPLATE = {
+    "Documentos y dinero": ["DNI vigente (el original)", "Foto del DNI en el celular", "Carné de estudiante UNAH", "Dólares en billetes pequeños", "Tarjeta de débito", "Contacto de emergencia anotado en papel"],
+    "Ropa": ["2 mudadas semiformales (URL martes y miércoles)", "5 camisetas frescas", "2 jeans o pantalones largos", "1 pantalón oscuro para el volcán", "1–2 shorts", "Sudadera o suéter", "Chumpa cortaviento o impermeable", "Ropa interior y calcetines para 7 días", "Pijama abrigada", "Traje de baño"],
+    "Calzado y sol": ["Tenis con buen agarre", "Zapatos para la URL", "Sandalias", "Gorra", "Lentes de sol", "Bloqueador solar", "Repelente de zancudos", "Paraguas pequeño (salida del domingo)"],
+    "Mochila de día": ["Botella de agua reutilizable", "Snacks para el bus", "Cargador y batería portátil", "Audífonos", "Almohada de viaje", "Bolsas plásticas (ropa sucia y tenis con ceniza)", "Candado pequeño para la maleta"],
+    "Aseo y salud": ["Cepillo y pasta de dientes", "Desodorante", "Shampoo y jabón", "Toalla pequeña", "Alcohol en gel", "Pastillas para dolor de cabeza", "Pastillas para el mareo", "Algo para el estómago", "Tus medicinas personales, si tomás alguna"]
+  };
+  window.giraChecklist = function () { return state; };
+  function fromTemplate() { var items = []; Object.keys(TEMPLATE).forEach(function (g) { TEMPLATE[g].forEach(function (t) { items.push({ id: uid(), g: g, t: t, d: false }); }); }); return { items: items }; }
+  var state = fromTemplate(), pack = document.getElementById("pack"), editing = false;
+  function save() { Store.save("checklist", state); }
+  function render() {
+    var groups = [];
+    state.items.forEach(function (it) { if (groups.indexOf(it.g) < 0) groups.push(it.g); });
+    Object.keys(TEMPLATE).forEach(function (g) { if (groups.indexOf(g) < 0) groups.push(g); });
+    pack.innerHTML = "";
+    groups.forEach(function (g) {
+      var wrap = document.createElement("div"); wrap.className = "group";
+      var h = document.createElement("h3"); h.textContent = g; wrap.appendChild(h);
+      state.items.filter(function (i) { return i.g === g; }).forEach(function (it) {
+        var row = document.createElement("div"); row.className = "check";
+        row.innerHTML = '<label><input type="checkbox"' + (it.d ? " checked" : "") + '><span class="box"><svg viewBox="0 0 14 14"><path d="M2 7.5 5.5 11 12 3.5"/></svg></span><span class="txt">' + esc(it.t) + '</span></label><button type="button" class="del" aria-label="Quitar ' + esc(it.t) + '"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8"/></svg></button>';
+        row.querySelector("input").addEventListener("change", function (e) { it.d = e.target.checked; update(); save(); });
+        row.querySelector(".del").addEventListener("click", function () { state.items = state.items.filter(function (x) { return x !== it; }); render(); save(); });
+        wrap.appendChild(row);
+      });
+      var f = document.createElement("form"); f.className = "addrow";
+      f.innerHTML = '<input type="text" placeholder="Agregar a ' + esc(g.toLowerCase()) + '…" aria-label="Nuevo item en ' + esc(g) + '"><button type="submit" aria-label="Agregar"><svg viewBox="0 0 14 14"><path d="M7 2v10M2 7h10"/></svg></button>';
+      f.addEventListener("submit", function (e) { e.preventDefault(); var v = f.querySelector("input").value.trim(); if (!v) return; state.items.push({ id: uid(), g: g, t: v, d: false }); render(); save(); var ni = pack.querySelectorAll("form.addrow input")[groups.indexOf(g)]; if (ni) ni.focus(); });
+      wrap.appendChild(f);
+      pack.appendChild(wrap);
+    });
+    pack.classList.toggle("editing", editing);
+    update();
+  }
+  function update() {
+    var done = state.items.filter(function (i) { return i.d; }).length, n = state.items.length;
+    document.getElementById("count").textContent = done + "/" + n;
+    document.getElementById("barFill").style.width = (n ? done / n * 100 : 0) + "%";
+    document.getElementById("tabCount").textContent = done + "/" + n;
+  }
+  document.getElementById("reset").addEventListener("click", function () { state.items.forEach(function (i) { i.d = false; }); render(); save(); });
+  document.getElementById("editList").addEventListener("click", function (e) { editing = !editing; e.currentTarget.textContent = editing ? "Listo" : "Editar lista"; e.currentTarget.setAttribute("aria-pressed", editing); pack.classList.toggle("editing", editing); });
+  document.getElementById("newGroup").addEventListener("submit", function (e) { e.preventDefault(); var i = e.target.querySelector("input"), v = i.value.trim(); if (!v) return; state.items.push({ id: uid(), g: v, t: "Nuevo item", d: false }); i.value = ""; render(); save(); });
+  render();
+  Store.load("checklist").then(function (v) { if (v && v.items) { state = v; render(); } });
+  Store.ready.then(function () { document.getElementById("saveNote").textContent = Store.mode() === "cloud" ? "Se guarda en tu cuenta y lo ves en cualquier dispositivo." : "Se guarda solo en este navegador."; });
+})();
+
+
+/* ---------- Gastos ---------- */
+(function () {
+  var SYM = { HNL: "L", USD: "$", GTQ: "Q" }, NAME = { HNL: "lempiras", USD: "dólares", GTQ: "quetzales" };
+  var CATS = ["Comida", "Transporte", "Entradas", "Compras", "Otros"];
+  var state = { items: [], display: "HNL", rates: { HNL: 27.04, GTQ: 7.7 }, budget: 0 };
+  function rate(c) { return c === "USD" ? 1 : (+state.rates[c] || 1); }
+  window.giraGastos = function () {
+    var D = state.display, O = D === "USD" ? "HNL" : "USD", tot = 0, lines = state.items.slice().sort(function (a, b) { return a.ts - b.ts; }).map(function (it) {
+      var v = conv(it.a, it.c, D); tot += v;
+      return "- " + new Date(it.ts).toLocaleString("es-HN", { weekday: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Tegucigalpa" }) + ": " + (it.t || it.k) + " (" + it.k + "), " + money(it.a, it.c) + (it.c === D ? "" : " = " + money(v, D));
+    });
+    return "Total gastado: " + money(tot, D) + " (= " + money(conv(tot, D, O), O) + ")" +
+      (state.budget ? ". Presupuesto: " + money(state.budget, D) : ". Sin presupuesto definido") +
+      ". Tipo de cambio usado: 1 dólar = L " + state.rates.HNL + " = Q " + state.rates.GTQ + "\n" + (lines.length ? lines.join("\n") : "Todavía no ha anotado gastos.");
+  };
+  function conv(a, from, to) { return a / rate(from) * rate(to); }
+  function money(a, c) { return SYM[c] + " " + (Math.round(a * 100) / 100).toLocaleString("es-HN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+  function save() { Store.save("gastos", state); }
+  var entryCur = "HNL";
+  function seg(el, val, cb) { el.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.v === val); b.onclick = function () { cb(b.dataset.v); }; }); }
+  function dayLabel(ts) {
+    var d = new Date(ts), days = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+    var loc = new Date(d.getTime() + (d.getTimezoneOffset() - 360) * 60000);
+    return days[loc.getDay()] + " " + loc.getDate();
+  }
+  function render() {
+    var D = state.display, total = 0, byCat = {};
+    state.items.forEach(function (it) { var v = conv(it.a, it.c, D); total += v; byCat[it.k] = (byCat[it.k] || 0) + v; });
+    document.getElementById("gTotal").textContent = money(total, D);
+    document.getElementById("gAlt").textContent = D === "HNL" ? "≈ " + money(conv(total, "HNL", "USD"), "USD") : "≈ " + money(conv(total, "USD", "HNL"), "HNL");
+    var b = +state.budget || 0, bw = document.getElementById("gBudgetWrap");
+    if (b > 0) { bw.hidden = false; var pct = Math.min(100, total / b * 100); document.getElementById("gBudgetFill").style.width = pct + "%"; document.getElementById("gBudgetFill").classList.toggle("over", total > b); document.getElementById("gBudgetTxt").textContent = total > b ? "Te pasaste por " + money(total - b, D) : "Te quedan " + money(b - total, D) + " de " + money(b, D); }
+    else bw.hidden = true;
+    var cats = document.getElementById("gCats"); cats.innerHTML = "";
+    CATS.forEach(function (k) { if (!byCat[k]) return; var s = document.createElement("span"); s.className = "catchip"; s.innerHTML = "<b></b><span></span>"; s.querySelector("b").textContent = k; s.querySelector("span").textContent = money(byCat[k], D); cats.appendChild(s); });
+    seg(document.getElementById("gDisplay"), D, function (v) { state.display = v; document.getElementById("gBudget").value = state.budget ? Math.round(conv(state.budget, D, v) * 100) / 100 : ""; state.budget = state.budget ? conv(state.budget, D, v) : 0; render(); save(); });
+    document.getElementById("gBudgetCur").textContent = SYM[D];
+    var list = document.getElementById("gList"); list.innerHTML = "";
+    if (!state.items.length) { list.innerHTML = '<p class="empty">Todavía no hay gastos. Anotá el primero arriba.</p>'; return; }
+    var sorted = state.items.slice().sort(function (a, b) { return b.ts - a.ts; }), lastDay = "";
+    sorted.forEach(function (it) {
+      var dl = dayLabel(it.ts);
+      if (dl !== lastDay) { var h = document.createElement("h3"); h.className = "gday"; h.textContent = dl.charAt(0).toUpperCase() + dl.slice(1); list.appendChild(h); lastDay = dl; }
+      var r = document.createElement("div"); r.className = "gitem";
+      r.innerHTML = '<span class="gcat"></span><div class="gtxt"><b></b><small></small></div><div class="gamt"><b></b><small></small></div><button type="button" class="del show" aria-label="Borrar gasto"><svg viewBox="0 0 14 14"><path d="M3 3l8 8M11 3l-8 8"/></svg></button>';
+      r.querySelector(".gcat").textContent = it.k.charAt(0);
+      r.querySelector(".gtxt b").textContent = it.t || it.k;
+      r.querySelector(".gtxt small").textContent = it.k + " · " + new Date(it.ts).toLocaleTimeString("es-HN", { hour: "numeric", minute: "2-digit", timeZone: "America/Tegucigalpa" });
+      r.querySelector(".gamt b").textContent = money(it.a, it.c);
+      r.querySelector(".gamt small").textContent = it.c === D ? "" : "≈ " + money(conv(it.a, it.c, D), D);
+      r.querySelector(".del").addEventListener("click", function () { state.items = state.items.filter(function (x) { return x !== it; }); render(); save(); });
+      list.appendChild(r);
+    });
+  }
+
+  var STEP = { HNL: 0.5, USD: 0.5, GTQ: 0.5 };
+  function stepAmt(dir) {
+    var el = document.getElementById("gAmt"), v = parseFloat((el.value || "0").replace(",", ".")) || 0, s = STEP[entryCur];
+    v = Math.max(0, Math.round((v + dir * s) / s) * s); v = Math.round(v * 100) / 100;
+    el.value = v ? (v % 1 ? v.toFixed(2) : String(v)) : "";
+  }
+  function hold(btn, dir) {
+    var t1, t2;
+    function stop() { clearTimeout(t1); clearInterval(t2); }
+    btn.addEventListener("pointerdown", function (e) { e.preventDefault(); stepAmt(dir); var n = 0; t1 = setTimeout(function () { t2 = setInterval(function () { n++; stepAmt(dir * (n > 20 ? 10 : 1)); }, 90); }, 400); });
+    ["pointerup", "pointerleave", "pointercancel"].forEach(function (ev) { btn.addEventListener(ev, stop); });
+    btn.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); stepAmt(dir); } });
+  }
+  hold(document.getElementById("gUp"), 1); hold(document.getElementById("gDown"), -1);
+  seg(document.getElementById("gCur"), entryCur, function setC(v) { entryCur = v; seg(document.getElementById("gCur"), v, setC); document.getElementById("gSym").textContent = SYM[v]; document.getElementById("gStepHint").textContent = "Cada flechita suma o resta " + SYM[v] + " " + STEP[v] + ". Dejala presionada y después de unos segundos avanza de 5 en 5."; });
+  document.getElementById("gForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var a = parseFloat(document.getElementById("gAmt").value.replace(",", "."));
+    if (!(a > 0)) { document.getElementById("gAmt").focus(); return; }
+    state.items.push({ id: uid(), ts: window.__now || Date.now(), a: a, c: entryCur, t: document.getElementById("gDesc").value.trim(), k: document.getElementById("gKind").value });
+    document.getElementById("gAmt").value = ""; document.getElementById("gDesc").value = ""; document.getElementById("gAdded").textContent = "Agregado: " + money(a, entryCur) + ". Podés anotar otro.";
+    render(); save();
+  });
+  function bindRate(id, c) { var el = document.getElementById(id); el.addEventListener("change", function () { var v = parseFloat(el.value); if (v > 0) { state.rates[c] = v; render(); save(); } else el.value = state.rates[c]; }); }
+  bindRate("rHNL", "HNL"); bindRate("rGTQ", "GTQ");
+  document.getElementById("gBudget").addEventListener("change", function (e) { var v = parseFloat(e.target.value); state.budget = v > 0 ? v : 0; render(); save(); });
+  function fill() { document.getElementById("rHNL").value = state.rates.HNL; document.getElementById("rGTQ").value = state.rates.GTQ; document.getElementById("gBudget").value = state.budget ? Math.round(state.budget * 100) / 100 : ""; }
+  fill(); render();
+  Store.load("gastos").then(function (v) { if (v && v.items) { state = v; state.rates = state.rates || { HNL: 27.04, GTQ: 7.7 }; fill(); render(); } });
+})();
+
+/* ---------- Ropa: mudadas por día ---------- */
+(function () {
+  var DAYS = [["d15", "Dom 15", "domingo 15"], ["d16", "Lun 16", "lunes 16"], ["d17", "Mar 17", "martes 17"], ["d18", "Mié 18", "miércoles 18"], ["d19", "Jue 19", "jueves 19"], ["d20", "Vie 20", "viernes 20"], ["d21", "Sáb 21", "sábado 21"]];
+  var ROUTE = { d15: "Viaje a San Salvador", d16: "Viaje a Guatemala", d17: "Curso en la URL", d18: "Curso y Antigua", d19: "Volcán de Pacaya", d20: "Viaje a La Libertad", d21: "Regreso a Tegucigalpa" };
+  var SUGGEST = {
+    d15: ["Viaje en bus", "Puerta del Diablo", "Centro Histórico de San Salvador", "Noche en San Salvador"],
+    d16: ["Viaje en bus", "Centro histórico de Guatemala", "Noche en el hotel"],
+    d17: ["Curso en la URL", "Zoológico La Aurora", "Ciudad Cayalá"],
+    d18: ["Curso y visita al campus de la URL", "Antigua Guatemala", "Atardecer en Antigua"],
+    d19: ["Volcán de Pacaya", "Museo Miraflores", "Noche en el hotel"],
+    d20: ["Viaje en bus", "Playa en La Libertad", "Sunset Park", "Noche en La Libertad"],
+    d21: ["Viaje de regreso a Tegucigalpa"]
+  };
+  var PARTS = [["camisa", "Camisa"], ["pantalon", "Pantalón"], ["zapatos", "Zapatos"], ["abrigo", "Abrigo"], ["gorra", "Gorra"], ["reloj", "Reloj"]];
+  var fits = [], draft = null, listEl = document.getElementById("fitList"), ed = document.getElementById("fitEditor"), newBtn = document.getElementById("newFit");
+  function count(day, exceptId) { return fits.filter(function (f) { return f.day === day && f.id !== exceptId; }).length; }
+
+  function compress(file) {
+    return new Promise(function (res, rej) {
+      var url = URL.createObjectURL(file), img = new Image();
+      img.onload = function () {
+        var max = 440, w = img.naturalWidth, h = img.naturalHeight, s = Math.min(1, max / Math.max(w, h));
+        var c = document.createElement("canvas"); c.width = Math.round(w * s); c.height = Math.round(h * s);
+        c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url);
+        var q = 0.66, out = c.toDataURL("image/jpeg", q);
+        while (out.length > 34000 && q > 0.3) { q -= 0.08; out = c.toDataURL("image/jpeg", q); }
+        if (out.length > 34000) { c.width = Math.round(c.width * .75); c.height = Math.round(c.height * .75); c.getContext("2d").drawImage(img, 0, 0, c.width, c.height); out = c.toDataURL("image/jpeg", 0.5); }
+        res(out);
+      };
+      img.onerror = function () { URL.revokeObjectURL(url); rej(); };
+      img.src = url;
+    });
+  }
+
+  function renderEditor() {
+    document.getElementById("fitTitle").textContent = draft.isNew ? "Nueva mudada" : "Editar mudada";
+    PARTS.forEach(function (p) {
+      var lab = document.querySelector('label[for="ph-' + p[0] + '"]'), im = lab.querySelector("img");
+      if (draft.imgs[p[0]]) { im.src = draft.imgs[p[0]]; lab.classList.add("has"); } else { im.removeAttribute("src"); lab.classList.remove("has"); }
+    });
+    var dEl = document.getElementById("fitDays"); dEl.innerHTML = "";
+    DAYS.forEach(function (d) {
+      var n = count(d[0], draft.id), b = document.createElement("button"); b.type = "button";
+      b.innerHTML = "<span></span><small></small>"; b.firstChild.textContent = d[1]; b.lastChild.textContent = n + "/3";
+      b.setAttribute("aria-pressed", draft.day === d[0]); b.disabled = n >= 3 && draft.day !== d[0];
+      b.addEventListener("click", function () { draft.day = d[0]; renderEditor(); });
+      dEl.appendChild(b);
+    });
+    var pEl = document.getElementById("fitPurposeChips"); pEl.innerHTML = "";
+    (SUGGEST[draft.day] || ["Viaje en bus", "Curso en la URL", "Paseo", "Noche"]).forEach(function (s) {
+      var b = document.createElement("button"); b.type = "button"; b.textContent = s; b.setAttribute("aria-pressed", draft.purpose === s);
+      b.addEventListener("click", function () { draft.purpose = s; document.getElementById("fitPurpose").value = ""; renderEditor(); });
+      pEl.appendChild(b);
+    });
+    var inp = document.getElementById("fitPurpose");
+    if (draft.purpose && (SUGGEST[draft.day] || []).indexOf(draft.purpose) < 0) inp.value = draft.purpose;
+  }
+  function open(f, day) {
+    draft = f ? JSON.parse(JSON.stringify(f)) : { id: "m_" + uid(), kind: "mudada", day: day || null, purpose: "", imgs: {}, isNew: true };
+    if (!draft.day) { for (var i = 0; i < DAYS.length; i++) if (count(DAYS[i][0]) < 3) { draft.day = DAYS[i][0]; break; } }
+    document.getElementById("fitErr").textContent = ""; document.getElementById("fitPurpose").value = "";
+    ed.hidden = false; newBtn.hidden = true; renderEditor(); ed.scrollIntoView({ block: "start" });
+  }
+  function close() { ed.hidden = true; newBtn.hidden = false; draft = null; }
+  newBtn.addEventListener("click", function () { open(null); });
+  document.getElementById("fitCancel").addEventListener("click", close);
+  document.getElementById("fitPurpose").addEventListener("input", function (e) { draft.purpose = e.target.value.trim(); document.querySelectorAll("#fitPurposeChips button").forEach(function (b) { b.setAttribute("aria-pressed", "false"); }); });
+  document.querySelectorAll('.shot input[type="file"]').forEach(function (inp) {
+    inp.addEventListener("change", function () {
+      var f = inp.files && inp.files[0], lab = inp.closest(".shot"); if (!f || !draft) return;
+      lab.classList.add("busy");
+      compress(f).then(function (d) { draft.imgs[inp.dataset.part] = d; renderEditor(); })
+        .catch(function () { document.getElementById("fitErr").textContent = "No se pudo leer esa foto. Probá con otra."; })
+        .then(function () { lab.classList.remove("busy"); inp.value = ""; });
+    });
+  });
+  ed.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var err = document.getElementById("fitErr");
+    if (!draft.day) { err.textContent = "Elegí el día de la mudada."; return; }
+    if (count(draft.day, draft.id) >= 3) { err.textContent = "Ese día ya tiene 3 mudadas. Elegí otro día."; return; }
+    if (!draft.purpose) { err.textContent = "Elegí o escribí para qué es la mudada."; return; }
+    if (!Object.keys(draft.imgs).length) { err.textContent = "Agregá al menos una foto."; return; }
+    var f = { id: draft.id, kind: "mudada", day: draft.day, purpose: draft.purpose, imgs: draft.imgs, ts: draft.ts || Date.now() };
+    fits = fits.filter(function (x) { return x.id !== f.id; }); fits.push(f);
+    status[f.id] = "subiendo"; close(); render();
+    var sec = document.getElementById("fd-" + f.day); if (sec) sec.scrollIntoView({ block: "start" });
+    Store.saveFit(f).then(function (where) { delete status[f.id]; render(); })
+      .catch(function () { status[f.id] = "error"; render(); });
+  });
+  var status = {};
+
+
+  /* ---- guardar fotos en el teléfono ---- */
+  var dlP = (window.claude && window.claude.use) ? window.claude.use("downloads").catch(function () { return null; }) : Promise.resolve(null);
+  function blobOf(dataUrl) { var b = atob(dataUrl.split(",")[1]), a = new Uint8Array(b.length); for (var i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return new Blob([a], { type: "image/jpeg" }); }
+  function fname(f, p) { var d = DAYS.filter(function (x) { return x[0] === f.day; })[0]; return ("mudada " + d[1] + " " + f.purpose + " " + p[1]).replace(/[^\wáéíóúñÁÉÍÓÚÑ ]+/g, "").replace(/\s+/g, "-").toLowerCase() + ".jpg"; }
+  function savePhoto(f, p) {
+    var data = f.imgs[p[0]]; if (!data) return Promise.resolve();
+    return dlP.then(function (dl) {
+      if (dl) return dl.save({ filename: fname(f, p), data: blobOf(data) });
+      var file = new File([blobOf(data)], fname(f, p), { type: "image/jpeg" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) return navigator.share({ files: [file] });
+      var a = document.createElement("a"); a.href = data; a.download = fname(f, p); document.body.appendChild(a); a.click(); a.remove();
+    });
+  }
+  function toast(msg) { var el = document.getElementById("toast"); el.textContent = msg; el.hidden = false; clearTimeout(el._t); el._t = setTimeout(function () { el.hidden = true; }, 3500); }
+  function saveAll(f) {
+    var parts = PARTS.filter(function (p) { return f.imgs[p[0]]; }), i = 0;
+    (function next() {
+      if (i >= parts.length) { toast("Listo, se guardaron " + parts.length + " fotos."); return; }
+      var p = parts[i++]; toast("Guardando " + p[1].toLowerCase() + " (" + i + " de " + parts.length + ")…");
+      savePhoto(f, p).then(next).catch(function (e) { toast(e && e.code === "declined" ? "Cancelaste el guardado." : "No se pudo guardar la foto."); });
+    })();
+  }
+  function viewer(f, p) {
+    var v = document.getElementById("viewer");
+    v.querySelector("img").src = f.imgs[p[0]]; v.querySelector("img").alt = p[1];
+    v.querySelector(".vt").textContent = p[1] + ", " + f.purpose;
+    v.hidden = false;
+    v.querySelector(".vsave").onclick = function () { savePhoto(f, p).then(function () { toast("Foto guardada."); }).catch(function (e) { toast(e && e.code === "declined" ? "Cancelaste el guardado." : "No se pudo guardar la foto."); }); };
+    v.querySelector(".vclose").onclick = function () { v.hidden = true; };
+    v.querySelector(".vclose").focus();
+  }
+
+  function render() {
+    listEl.innerHTML = "";
+    DAYS.forEach(function (d) {
+      var mine = fits.filter(function (f) { return f.day === d[0]; }).sort(function (a, b) { return a.ts - b.ts; });
+      var head = document.createElement("div"); head.className = "fday"; head.id = "fd-" + d[0];
+      head.innerHTML = "<h3></h3><span></span>"; head.firstChild.textContent = d[2].charAt(0).toUpperCase() + d[2].slice(1); head.lastChild.textContent = ROUTE[d[0]] + " · " + mine.length + "/3";
+      listEl.appendChild(head);
+      if (!mine.length) {
+        var em = document.createElement("div"); em.className = "emptyday"; em.innerHTML = "<span>Sin mudadas todavía</span><button type=\"button\">Agregar</button>";
+        em.querySelector("button").addEventListener("click", function () { open(null, d[0]); }); listEl.appendChild(em); return;
+      }
+      mine.forEach(function (f, i) {
+        var c = document.createElement("article"); c.className = "fitcard";
+        c.innerHTML = '<div class="fithead"><div><small></small><b></b></div><div class="fitact"><button type="button" class="dl" aria-label="Guardar fotos en el teléfono"><svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg></button><button type="button" class="edit">Editar</button><button type="button" class="danger">Borrar</button></div></div><div class="fitimgs"></div>';
+        c.querySelector("small").textContent = "Mudada " + (i + 1) + " de " + mine.length + (status[f.id] === "subiendo" ? " · guardando en tu cuenta…" : status[f.id] === "error" ? " · guardada solo en este teléfono" : ""); c.querySelector("b").textContent = f.purpose;
+        var g = c.querySelector(".fitimgs");
+        var OPT = ["abrigo", "gorra", "reloj"];
+        var shown = PARTS.filter(function (p) { return OPT.indexOf(p[0]) < 0 || f.imgs[p[0]]; });
+        if (shown.length === 3) g.classList.add("three"); else if (shown.length > 4) g.classList.add("many");
+        shown.forEach(function (p) {
+          var fig = document.createElement("figure");
+          if (f.imgs[p[0]]) { var im = document.createElement("img"); im.src = f.imgs[p[0]]; im.alt = p[1] + " para " + f.purpose; fig.appendChild(im); fig.tabIndex = 0; fig.setAttribute("role", "button"); fig.setAttribute("aria-label", "Ver foto de " + p[1]); fig.addEventListener("click", function () { viewer(f, p); }); fig.addEventListener("keydown", function (e) { if (e.key === "Enter") viewer(f, p); }); }
+          else { var s = document.createElement("span"); s.className = "none"; s.textContent = "Sin foto"; fig.appendChild(s); }
+          var cap = document.createElement("figcaption"); cap.textContent = p[1]; fig.appendChild(cap); g.appendChild(fig);
+        });
+        c.querySelector(".edit").addEventListener("click", function () { open(f); });
+        c.querySelector(".dl").addEventListener("click", function () { saveAll(f); });
+        var del = c.querySelector(".danger");
+        del.addEventListener("click", function () {
+          if (!del.classList.contains("confirm")) { del.classList.add("confirm"); del.textContent = "¿Seguro? Tocá otra vez"; setTimeout(function () { del.classList.remove("confirm"); del.textContent = "Borrar"; }, 4000); return; }
+          Store.delFit(f.id); fits = fits.filter(function (x) { return x.id !== f.id; }); render();
+        });
+        listEl.appendChild(c);
+      });
+      if (mine.length < 3) { var add = document.createElement("div"); add.className = "emptyday"; add.innerHTML = "<span>Podés agregar " + (3 - mine.length) + " más</span><button type=\"button\">Agregar</button>"; add.querySelector("button").addEventListener("click", function () { open(null, d[0]); }); listEl.appendChild(add); }
+    });
+  }
+  render();
+  function merge(list) { (list || []).forEach(function (f) { if (!fits.some(function (x) { return x.id === f.id; })) fits.push(f); else fits = fits.map(function (x) { return x.id === f.id ? f : x; }); }); render(); }
+  Store.localFits().then(merge);
+  Store.listFits().then(function (list) { merge(list); });
+})();
+
+</script>
+<script>if ("serviceWorker" in navigator && location.protocol === "https:") { window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); }); }</script>
+</body>
+</html>

@@ -99,6 +99,10 @@ svg.flag { width: 21px; height: 14px; border-radius: 3px; box-shadow: 0 0 0 1px 
 .markdone.undo { background: var(--app); color: var(--muted); font-weight: 600; }
 .markdone[hidden] { display: none; }
 .markdone:focus-visible { outline: 2px solid var(--orange); outline-offset: 2px; }
+.row.past .row-in { opacity: .38; filter: saturate(.4); transition: opacity .3s; }
+.row.past .detail { opacity: .6; }
+.row.past .markdone.undo { opacity: 1; }
+.row.now .row-in { opacity: 1; }
 /* Camino */
 .trail { position: relative; margin-top: 14px; }
 .trail svg.snake { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
@@ -707,7 +711,20 @@ document.querySelectorAll(".more").forEach(function (b) {
   var rows = Array.prototype.slice.call(document.querySelectorAll("#itinerarioList > .row"));
   var marks = { done: {} };
   function saveProg() { Store.save("progreso", marks); }
-  setTimeout(function () { Store.load("progreso").then(function (v) { if (v && v.done) { marks = v; draw(); } }); }, 0);
+  var scrolled = false;
+  function autoScroll() {
+    if (scrolled) return; scrolled = true;
+    var h = (location.hash || "").slice(1);
+    if (h && h !== "itinerario") return;
+    var el = document.querySelector("#itinerarioList > .row.now") || document.querySelector("#itinerarioList > .row.next");
+    if (!el) return;
+    var top = document.querySelector(".top"), off = top ? top.getBoundingClientRect().height + 36 : 240;
+    window.scrollTo({ top: Math.max(0, el.getBoundingClientRect().top + window.pageYOffset - off), behavior: "auto" });
+  }
+  setTimeout(function () {
+    var done = false, fallback = setTimeout(function () { if (!done) { done = true; draw(); autoScroll(); } }, 1500);
+    Store.load("progreso").then(function (v) { if (v && v.done) marks = v; }).catch(function () {}).then(function () { if (done) return; done = true; clearTimeout(fallback); draw(); requestAnimationFrame(autoScroll); });
+  }, 0);
   rows.forEach(function (li) {
     var b = li.querySelector(".markdone"); if (!b) return;
     b.addEventListener("click", function () {

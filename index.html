@@ -297,6 +297,28 @@ a.inl { color: var(--teal); font-weight: 700; }
 .imp input { position: absolute; opacity: 0; width: 1px; height: 1px; }
 .imp:focus-within { outline: 2px solid var(--teal); }
 #xferMsg:empty { display: none; }
+.loanhead { padding-top: 34px; }
+.owe { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+.owe div { background: var(--app); border-radius: 14px; padding: 8px 12px; display: grid; }
+.owe b { font-family: var(--font-display); font-size: 15px; }
+.owe span { font-size: 14px; font-variant-numeric: tabular-nums; color: var(--teal); font-weight: 700; }
+.owe div.zero span { color: var(--muted); font-weight: 500; }
+.btn.wide { padding: 12px; width: 100%; }
+.lperson { display: flex; justify-content: space-between; align-items: baseline; margin: 10px 0 2px; }
+.lperson:first-child { margin-top: 0; }
+.lperson h3 { font-size: 17px; color: var(--teal); }
+.lperson span { font-size: 13px; color: var(--muted); font-weight: 600; font-variant-numeric: tabular-nums; }
+.litem { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; padding: 8px 0; border-top: 1px solid var(--line); }
+.lperson + .litem { border-top: 0; }
+.litem .gtxt b { white-space: normal; }
+.litem .acts { grid-column: 1 / -1; display: flex; gap: 6px; }
+.litem .acts button { border: 0; font-size: 12px; font-weight: 700; padding: 5px 10px; border-radius: 9px; cursor: pointer; }
+.litem .paybtn { background: var(--teal); color: #fff; }
+.litem.paid .paybtn { background: var(--app); color: var(--muted); }
+.litem .ldel { background: var(--orange-soft); color: var(--orange); }
+.litem.paid .gtxt, .litem.paid .gamt { opacity: .45; }
+.litem.paid .gamt b { text-decoration: line-through; }
+.paidtag { font-size: 11px; font-weight: 700; color: var(--teal); background: var(--teal-soft); padding: 1px 7px; border-radius: 6px; margin-left: 6px; }
 /* Otras vistas */
 .vhead { padding: 26px 4px 14px; display: grid; gap: 4px; }
 .vhead h2 { font-size: 26px; font-weight: 800; }
@@ -577,6 +599,27 @@ form.ask input:focus { outline: none; border-color: var(--teal); }
     <div id="gBudgetWrap" hidden><div class="bar"><i id="gBudgetFill"></i></div><p class="muted small" id="gBudgetTxt"></p></div>
     <div class="cats" id="gCats"></div>
   </div>
+
+  <div class="vhead loanhead"><h2>Quién me debe</h2><p>Anotá lo que le prestaste a cada una y marcalo cuando te pague.</p></div>
+  <div class="card total">
+    <p class="muted">Te deben en total</p>
+    <p class="big" id="lTotal">L 0.00</p>
+    <p class="muted" id="lAlt"></p>
+    <div class="owe" id="lPeople"></div>
+  </div>
+  <form class="card" id="lForm">
+    <h3>Anotar préstamo</h3>
+    <div class="fld"><span class="lbl">¿A quién le prestaste?</span><div class="purpose" id="lWho">
+      <button type="button" data-p="Angie">Angie</button><button type="button" data-p="Jade">Jade</button><button type="button" data-p="María">María</button><button type="button" data-p="Geovana">Geovana</button></div></div>
+    <div class="seg" id="lCur" role="group" aria-label="Moneda en que prestaste"><button type="button" data-v="HNL">L</button><button type="button" data-v="USD">$</button><button type="button" data-v="GTQ">Q</button></div>
+    <div class="amt"><span id="lSym">L</span><input id="lAmt" type="text" inputmode="decimal" placeholder="0.00" aria-label="Monto prestado" autocomplete="off">
+      <div class="stepper"><button type="button" id="lUp" aria-label="Subir monto"><svg viewBox="0 0 24 24"><path d="M6 15l6-6 6 6"/></svg></button><button type="button" id="lDown" aria-label="Bajar monto"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></button></div>
+    </div>
+    <input id="lDesc" class="field" type="text" placeholder="¿Para qué? Ej. almuerzo en el centro" aria-label="Para qué fue el préstamo" autocomplete="off">
+    <p class="err small" id="lErr" aria-live="polite"></p>
+    <button class="btn wide" type="submit">Anotar préstamo</button>
+  </form>
+  <div class="card"><div id="lList"></div></div>
 </section>
 
 <section class="view" id="v-ropa" hidden>
@@ -1016,17 +1059,18 @@ function esc(s) { var d = document.createElement("div"); d.textContent = s; retu
   }
 
   var STEP = { HNL: 0.5, USD: 0.5, GTQ: 0.5 };
-  function stepAmt(dir) {
-    var el = document.getElementById("gAmt"), v = parseFloat((el.value || "0").replace(",", ".")) || 0, s = STEP[entryCur];
+  function stepAmt(dir, inputId, cur) {
+    var el = document.getElementById(inputId || "gAmt"), v = parseFloat((el.value || "0").replace(",", ".")) || 0, s = STEP[cur || entryCur];
     v = Math.max(0, Math.round((v + dir * s) / s) * s); v = Math.round(v * 100) / 100;
     el.value = v ? (v % 1 ? v.toFixed(2) : String(v)) : "";
   }
-  function hold(btn, dir) {
+  function hold(btn, dir, inputId, curFn) {
     var t1, t2;
+    function st(d) { stepAmt(d, inputId, curFn ? curFn() : null); }
     function stop() { clearTimeout(t1); clearInterval(t2); }
-    btn.addEventListener("pointerdown", function (e) { e.preventDefault(); stepAmt(dir); var n = 0; t1 = setTimeout(function () { t2 = setInterval(function () { n++; stepAmt(dir * (n > 20 ? 10 : 1)); }, 90); }, 400); });
+    btn.addEventListener("pointerdown", function (e) { e.preventDefault(); st(dir); var n = 0; t1 = setTimeout(function () { t2 = setInterval(function () { n++; st(dir * (n > 20 ? 10 : 1)); }, 90); }, 400); });
     ["pointerup", "pointerleave", "pointercancel"].forEach(function (ev) { btn.addEventListener(ev, stop); });
-    btn.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); stepAmt(dir); } });
+    btn.addEventListener("keydown", function (e) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); st(dir); } });
   }
   hold(document.getElementById("gUp"), 1); hold(document.getElementById("gDown"), -1);
   seg(document.getElementById("gCur"), entryCur, function setC(v) { entryCur = v; seg(document.getElementById("gCur"), v, setC); document.getElementById("gSym").textContent = SYM[v]; document.getElementById("gStepHint").textContent = "Cada flechita suma o resta " + SYM[v] + " " + STEP[v] + ". Dejala presionada y después de unos segundos avanza de 5 en 5."; });
@@ -1038,10 +1082,62 @@ function esc(s) { var d = document.createElement("div"); d.textContent = s; retu
     document.getElementById("gAmt").value = ""; document.getElementById("gDesc").value = ""; document.getElementById("gAdded").textContent = "Agregado: " + money(a, entryCur) + ". Podés anotar otro.";
     render(); save();
   });
+
+  /* ---- préstamos ---- */
+  var PEOPLE = ["Angie", "Jade", "María", "Geovana"], loanCur = "HNL", loanWho = null;
+  function renderLoans() {
+    if (!state.loans) state.loans = [];
+    var D = state.display, O = D === "USD" ? "HNL" : "USD", owed = {}, total = 0;
+    PEOPLE.forEach(function (p) { owed[p] = 0; });
+    state.loans.forEach(function (l) { if (!l.paid) { var v = conv(l.a, l.c, D); owed[l.p] = (owed[l.p] || 0) + v; total += v; } });
+    document.getElementById("lTotal").textContent = money(total, D);
+    document.getElementById("lAlt").textContent = "≈ " + money(conv(total, D, O), O);
+    var pe = document.getElementById("lPeople"); pe.innerHTML = "";
+    PEOPLE.forEach(function (p) { var d = document.createElement("div"); d.className = owed[p] ? "" : "zero"; d.innerHTML = "<b></b><span></span>"; d.firstChild.textContent = p; d.lastChild.textContent = owed[p] ? money(owed[p], D) : "No te debe"; pe.appendChild(d); });
+    var list = document.getElementById("lList"); list.innerHTML = "";
+    if (!state.loans.length) { list.innerHTML = '<p class="empty">Todavía no anotaste ningún préstamo.</p>'; return; }
+    PEOPLE.concat(state.loans.map(function (l) { return l.p; }).filter(function (p, i, a) { return PEOPLE.indexOf(p) < 0 && a.indexOf(p) === i; })).forEach(function (p) {
+      var mine = state.loans.filter(function (l) { return l.p === p; }).sort(function (a, b) { return b.ts - a.ts; });
+      if (!mine.length) return;
+      var h = document.createElement("div"); h.className = "lperson"; h.innerHTML = "<h3></h3><span></span>"; h.firstChild.textContent = p; h.lastChild.textContent = owed[p] ? "Te debe " + money(owed[p], D) : "Ya te pagó todo"; list.appendChild(h);
+      mine.forEach(function (l) {
+        var r = document.createElement("div"); r.className = "litem" + (l.paid ? " paid" : "");
+        r.innerHTML = '<div class="gtxt"><b></b><small></small></div><div class="gamt"><b></b><small></small></div><div class="acts"><button type="button" class="paybtn"></button><button type="button" class="ldel">Borrar</button></div>';
+        r.querySelector(".gtxt b").textContent = l.t || "Préstamo";
+        if (l.paid) { var tag = document.createElement("span"); tag.className = "paidtag"; tag.textContent = "Pagado"; r.querySelector(".gtxt b").appendChild(tag); }
+        r.querySelector(".gtxt small").textContent = new Date(l.ts).toLocaleString("es-HN", { weekday: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: "America/Tegucigalpa" });
+        r.querySelector(".gamt b").textContent = money(l.a, l.c);
+        r.querySelector(".gamt small").textContent = l.c === D ? "" : "≈ " + money(conv(l.a, l.c, D), D);
+        var pb = r.querySelector(".paybtn"); pb.textContent = l.paid ? "Deshacer pago" : "Me pagó";
+        pb.addEventListener("click", function () { l.paid = !l.paid; renderLoans(); save(); });
+        var db = r.querySelector(".ldel");
+        db.addEventListener("click", function () {
+          if (!db.classList.contains("sure")) { db.classList.add("sure"); db.textContent = "¿Seguro? Tocá otra vez"; setTimeout(function () { db.classList.remove("sure"); db.textContent = "Borrar"; }, 4000); return; }
+          state.loans = state.loans.filter(function (x) { return x !== l; }); renderLoans(); save();
+        });
+        list.appendChild(r);
+      });
+    });
+  }
+  function setWho(p) { loanWho = p; document.querySelectorAll("#lWho button").forEach(function (b) { b.setAttribute("aria-pressed", b.dataset.p === p); }); }
+  document.querySelectorAll("#lWho button").forEach(function (b) { b.addEventListener("click", function () { setWho(b.dataset.p); document.getElementById("lErr").textContent = ""; }); });
+  seg(document.getElementById("lCur"), loanCur, function setL(v) { loanCur = v; seg(document.getElementById("lCur"), v, setL); document.getElementById("lSym").textContent = SYM[v]; });
+  hold(document.getElementById("lUp"), 1, "lAmt", function () { return loanCur; }); hold(document.getElementById("lDown"), -1, "lAmt", function () { return loanCur; });
+  document.getElementById("lForm").addEventListener("submit", function (e) {
+    e.preventDefault();
+    var err = document.getElementById("lErr"), a = parseFloat(document.getElementById("lAmt").value.replace(",", "."));
+    if (!loanWho) { err.textContent = "Elegí a quién le prestaste."; return; }
+    if (!(a > 0)) { err.textContent = "Poné cuánto le prestaste."; document.getElementById("lAmt").focus(); return; }
+    if (!state.loans) state.loans = [];
+    state.loans.push({ id: uid(), ts: window.__now || Date.now(), p: loanWho, a: a, c: loanCur, t: document.getElementById("lDesc").value.trim(), paid: false });
+    document.getElementById("lAmt").value = ""; document.getElementById("lDesc").value = ""; err.textContent = "";
+    renderLoans(); save();
+  });
   function bindRate(id, c) { var el = document.getElementById(id); el.addEventListener("change", function () { var v = parseFloat(el.value); if (v > 0) { state.rates[c] = v; render(); save(); } else el.value = state.rates[c]; }); }
   bindRate("rHNL", "HNL"); bindRate("rGTQ", "GTQ");
   document.getElementById("gBudget").addEventListener("change", function (e) { var v = parseFloat(e.target.value); state.budget = v > 0 ? v : 0; render(); save(); });
   function fill() { document.getElementById("rHNL").value = state.rates.HNL; document.getElementById("rGTQ").value = state.rates.GTQ; document.getElementById("gBudget").value = state.budget ? Math.round(state.budget * 100) / 100 : ""; }
+  var _render = render; render = function () { _render(); renderLoans(); };
   fill(); render();
   Store.load("gastos").then(function (v) { if (gTouched) { Store.save("gastos", state); return; } if (v && v.items) { state = v; state.rates = state.rates || { HNL: 27.04, GTQ: 7.7 }; fill(); render(); } });
 })();
